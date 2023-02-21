@@ -1,0 +1,63 @@
+# Compiled object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled static libraries
+*.a
+
+# Executables
+*.exe
+*.out
+*.app
+
+# DS_Store files created by macOS
+.DS_Store
+
+# Logs
+*.log
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Make
+Makefile
+
+# Compiled binary
+/bin/
+
+# Compiled object
+/obj/
+
+# Build output
+/build/
+
+# Temp files
+*.swp
+*~
+
+# Dependencies
+.depend
+
+# IDE files
+.vscode/
+*.code-workspace
+
+# OS generated files
+Thumbs.db
+
+# User-specific files
+*.DS_Store
+.DS_Store?
+.profile
+# gitignore templates
+.gitignore_global
+
