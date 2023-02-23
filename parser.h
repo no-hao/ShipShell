@@ -8,6 +8,6 @@ typedef struct TokenList {
 
 void strip_trailing_whitespace(char *s);
 
-TokenList tokenize_input(char *input, char *delimiter);
+TokenList tokenize_input(const char *input, const char *delimiter);
 
 #endif
