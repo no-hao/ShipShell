@@ -10,14 +10,22 @@ extern const int SUCCESS;
 extern const char *const ERROR_MESSAGE;
 #define WRITE_ERROR_MESSAGE(msg) write(STDERR_FILENO, msg, strlen(msg))
 
-void init_path();
+// Define a struct to hold the path
+typedef struct Path {
+  char **dirs;
+  int num_dirs;
+} Path;
 
-bool is_builtin(TokenList tokens);
+Path *init_path();
 
-void execute_builtin(TokenList tokens);
+bool is_builtin(Command command);
 
-void set_path(char **path, const char *new_path);
+void execute_builtin(Command command, Path *path);
 
-void execute_command(TokenList tokens);
+void free_path(Path *path);
+
+void set_path(Path *path, const char *new_path);
+
+void execute_command(Command command, Path *path);
 
 #endif

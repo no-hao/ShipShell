@@ -1,13 +1,15 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-typedef struct TokenList {
-  char **tokens;
-  int num_tokens;
-} TokenList;
+#include <stddef.h>
 
-void strip_trailing_whitespace(char *s);
+typedef struct Command {
+  char **args;
+  int num_args;
+} Command;
 
-TokenList tokenize_input(const char *input, const char *delimiter);
+Command parse_input(const char *input, const char *delimiter);
+
+void free_command(Command command);
 
 #endif

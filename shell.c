@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
   size_t input_size = 0;
   int line_number = 1;
   FILE *file = stdin;
-  init_path();
+  Path *path = init_path();
 
   if (argc == 2 && (file = fopen(argv[1], "r")) == NULL) {
     WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
@@ -19,15 +19,15 @@ int main(int argc, char *argv[]) {
 
   while (file == stdin ? printf("wish> ") : 0,
          getline(&input, &input_size, file) != -1) {
-    TokenList tokens = tokenize_input(input, " \t\n");
+    Command command = parse_input(input, " \t\n");
 
-    if (is_builtin(tokens)) {
-      execute_builtin(tokens);
+    if (is_builtin(command)) {
+      execute_builtin(command, path);
     } else {
-      execute_command(tokens);
+      execute_command(command, path);
     }
 
-    free(tokens.tokens);
+    free_command(command);
   }
 
   if (ferror(file)) {
@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
 
   free(input);
   fclose(file);
+  free_path(path);
 
   return 0;
 }
