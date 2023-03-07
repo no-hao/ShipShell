@@ -17,14 +17,14 @@ typedef struct Path {
 } Path;
 
 Path *init_path();
+void free_path(Path *path);
+void set_path(Path *path, const char *new_path);
 
 bool is_builtin(Command command);
-
 void execute_builtin(Command command, Path *path);
-
-void free_path(Path *path);
-
-void set_path(Path *path, const char *new_path);
+void exit_command(Command command);
+void cd_command(Command command);
+void path_command(Command command, Path *path);
 
 void execute_command(Command command, Path *path);
 
