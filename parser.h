@@ -1,11 +1,13 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 typedef struct Command {
   char **args;
   int num_args;
+  bool redirect_found;
 } Command;
 
 Command parse_input(const char *input, const char *delimiter);
