@@ -65,40 +65,48 @@ void set_path(Path *path, const char *new_path) {
   free(new_path_copy);
 }
 
-bool is_builtin(Command command) {
-  if (strcmp(command.args[0], "path") == 0 ||
-      strcmp(command.args[0], "cd") == 0 ||
-      strcmp(command.args[0], "exit") == 0) {
-    return true;
+void exit_command(Command command) {
+  if (command.num_args == 1) {
+    exit(SUCCESS);
   } else {
-    return false;
+    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
   }
+}
+
+void cd_command(Command command) {
+  if (command.num_args == 1) {
+    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+  } else {
+    int result = chdir(command.args[1]);
+    if (result != SUCCESS) {
+      WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    }
+  }
+}
+
+void path_command(Command command, Path *path) {
+  if (command.num_args == 1) {
+    set_path(path, "");
+  } else if (command.num_args == 2) {
+    set_path(path, command.args[1]);
+  } else {
+    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+  }
+}
+
+bool is_builtin(Command command) {
+  return strcmp(command.args[0], "path") == 0 ||
+         strcmp(command.args[0], "cd") == 0 ||
+         strcmp(command.args[0], "exit") == 0;
 }
 
 void execute_builtin(Command command, Path *path) {
   if (strcmp(command.args[0], "exit") == 0) {
-    if (command.num_args == 1) {
-      exit(SUCCESS);
-    } else {
-      WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
-    }
+    exit_command(command);
   } else if (strcmp(command.args[0], "cd") == 0) {
-    if (command.num_args == 1) {
-      WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
-    } else {
-      int result = chdir(command.args[1]);
-      if (result != SUCCESS) {
-        WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
-      }
-    }
+    cd_command(command);
   } else if (strcmp(command.args[0], "path") == 0) {
-    if (command.num_args == 1) {
-      set_path(path, "");
-    } else if (command.num_args == 2) {
-      set_path(path, command.args[1]);
-    } else {
-      WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
-    }
+    path_command(command, path);
   } else {
     WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
   }

@@ -51,6 +51,12 @@ cmake_install.cmake
 # OS generated files
 Thumbs.db
 
+# ignore the wish executable
+wish
+
+# ignore tests-out folder
+tests-out/
+
 # User-specific files
 *.DS_Store
 .DS_Store?
