@@ -13,7 +13,7 @@ static void strip_trailing_whitespace(char *s) {
   }
 }
 
-static char **allocate_tokens(size_t max_tokens, size_t *num_tokens) {
+static char **initialize_token_pointers(size_t max_tokens, size_t *num_tokens) {
   char **tokens = malloc(max_tokens * sizeof(*tokens));
   if (tokens == NULL) {
     perror("Error: failed to allocate memory for tokens");
@@ -50,7 +50,7 @@ static char *allocate_token(size_t token_len, const char *start) {
 static char **split_string(const char *input, const char *delimiter,
                            size_t *num_tokens) {
   size_t max_tokens = TOKEN_BUF_SIZE;
-  char **tokens = allocate_tokens(max_tokens, num_tokens);
+  char **tokens = initialize_token_pointers(max_tokens, num_tokens);
   if (tokens == NULL) {
     return NULL;
   }
