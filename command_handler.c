@@ -65,6 +65,32 @@ void set_path(Path *path, const char *new_path) {
   free(new_path_copy);
 }
 
+void add_directory_to_path(Path *path, const char *dir) {
+  // Check if the directory is already in the path
+  for (int i = 0; i < path->num_dirs; i++) {
+    if (strcmp(path->dirs[i], dir) == 0) {
+      // Directory is already in the path, so do nothing
+      return;
+    }
+  }
+
+  // Allocate space for the new directory
+  char **new_dirs = malloc(sizeof(char *) * (path->num_dirs + 1));
+
+  // Copy the old directories
+  for (int i = 0; i < path->num_dirs; i++) {
+    new_dirs[i] = path->dirs[i];
+  }
+
+  // Add the new directory to the end of the array
+  new_dirs[path->num_dirs] = strdup(dir);
+
+  // Free the old directory array and update the path
+  free(path->dirs);
+  path->dirs = new_dirs;
+  path->num_dirs++;
+}
+
 void exit_command(Command command) {
   if (command.num_args == 1) {
     exit(SUCCESS);
@@ -87,10 +113,11 @@ void cd_command(Command command) {
 void path_command(Command command, Path *path) {
   if (command.num_args == 1) {
     set_path(path, "");
-  } else if (command.num_args == 2) {
-    set_path(path, command.args[1]);
   } else {
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    set_path(path, command.args[1]);
+    for (int i = 2; i < command.num_args; i++) {
+      add_directory_to_path(path, command.args[i]);
+    }
   }
 }
 
@@ -124,12 +151,12 @@ void execute_command(Command command, Path *path) {
 
     char full_path[255];
     for (int i = 0; i < path->num_dirs; i++) {
-      sprintf(full_path, "%s/%s", path->dirs[i], command.args[0]);
+      snprintf(full_path, sizeof(full_path), "%s/%s", path->dirs[i],
+               command.args[0]);
       if (access(full_path, X_OK) == 0) {
-        if (execv(full_path, command.args) == -1) {
-          WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
-          exit(EXIT_FAILURE);
-        }
+        execv(full_path, command.args);
+        perror("execv"); // Print an error message if execv fails
+        exit(EXIT_FAILURE);
       }
     }
 
