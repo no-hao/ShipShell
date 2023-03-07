@@ -40,11 +40,11 @@ void set_path(Path *path, const char *new_path) {
   char *new_path_copy = strdup(new_path);
 
   // Split the new path into directories
-  char *token = strtok(new_path_copy, ":");
+  char *token = strtok(new_path_copy, " ");
   int num_dirs = 0;
   while (token != NULL) {
     num_dirs++;
-    token = strtok(NULL, ":");
+    token = strtok(NULL, " ");
   }
 
   // Allocate space for the new directories
@@ -52,11 +52,11 @@ void set_path(Path *path, const char *new_path) {
 
   // Copy the new directories
   int i = 0;
-  token = strtok(new_path_copy, ":");
+  token = strtok(new_path_copy, " ");
   while (token != NULL) {
     path->dirs[i] = strdup(token);
     i++;
-    token = strtok(NULL, ":");
+    token = strtok(NULL, " ");
   }
 
   path->num_dirs = num_dirs;
