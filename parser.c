@@ -13,13 +13,45 @@ static void strip_trailing_whitespace(char *s) {
   }
 }
 
-static char **split_string(const char *input, const char *delimiter,
-                           size_t *num_tokens) {
-  size_t max_tokens = TOKEN_BUF_SIZE;
+static char **allocate_tokens(size_t max_tokens, size_t *num_tokens) {
   char **tokens = malloc(max_tokens * sizeof(*tokens));
   if (tokens == NULL) {
     perror("Error: failed to allocate memory for tokens");
     *num_tokens = 0;
+  }
+  return tokens;
+}
+
+static char **realloc_tokens(char **tokens, size_t *max_tokens,
+                             size_t *num_tokens) {
+  *max_tokens += TOKEN_BUF_SIZE;
+  char **new_tokens = realloc(tokens, (*max_tokens) * sizeof(*tokens));
+  if (new_tokens == NULL) {
+    perror("Error: failed to reallocate memory for tokens");
+    free(tokens);
+    *num_tokens = 0;
+    return NULL;
+  }
+  return new_tokens;
+}
+
+static char *allocate_token(size_t token_len, const char *start) {
+  char *token = malloc(token_len + 1);
+  if (token == NULL) {
+    perror("Error: failed to allocate memory for token");
+    return NULL;
+  }
+  memcpy(token, start, token_len);
+  token[token_len] = '\0';
+  strip_trailing_whitespace(token);
+  return token;
+}
+
+static char **split_string(const char *input, const char *delimiter,
+                           size_t *num_tokens) {
+  size_t max_tokens = TOKEN_BUF_SIZE;
+  char **tokens = allocate_tokens(max_tokens, num_tokens);
+  if (tokens == NULL) {
     return NULL;
   }
 
@@ -32,22 +64,16 @@ static char **split_string(const char *input, const char *delimiter,
     }
 
     if (*num_tokens >= max_tokens) {
-      max_tokens += TOKEN_BUF_SIZE;
-      char **new_tokens = realloc(tokens, max_tokens * sizeof(*tokens));
-      if (new_tokens == NULL) {
-        perror("Error: failed to reallocate memory for tokens");
-        free(tokens);
-        *num_tokens = 0;
+      tokens = realloc_tokens(tokens, &max_tokens, num_tokens);
+      if (tokens == NULL) {
         return NULL;
       }
-      tokens = new_tokens;
     }
 
     size_t token_len = end - start;
     if (token_len > 0) {
-      char *token = malloc(token_len + 1);
+      char *token = allocate_token(token_len, start);
       if (token == NULL) {
-        perror("Error: failed to allocate memory for token");
         for (size_t i = 0; i < *num_tokens; i++) {
           free(tokens[i]);
         }
@@ -55,9 +81,6 @@ static char **split_string(const char *input, const char *delimiter,
         *num_tokens = 0;
         return NULL;
       }
-      memcpy(token, start, token_len);
-      token[token_len] = '\0';
-      strip_trailing_whitespace(token);
       tokens[(*num_tokens)++] = token;
     }
 
