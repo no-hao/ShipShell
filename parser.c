@@ -6,6 +6,13 @@
 
 #define TOKEN_BUF_SIZE 16
 
+void free_command(Command command) {
+  for (size_t i = 0; i < command.num_args; i++) {
+    free(command.args[i]);
+  }
+  free(command.args);
+}
+
 static void strip_trailing_whitespace(char *s) {
   size_t len = strlen(s);
   while (len > 0 && isspace(s[len - 1])) {
@@ -95,11 +102,4 @@ Command parse_input(const char *input, const char *delimiter) {
   char **tokens = split_string(input, delimiter, &num_tokens);
   Command command = {tokens, num_tokens};
   return command;
-}
-
-void free_command(Command command) {
-  for (size_t i = 0; i < command.num_args; i++) {
-    free(command.args[i]);
-  }
-  free(command.args);
 }

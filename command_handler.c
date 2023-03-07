@@ -91,7 +91,7 @@ void add_directory_to_path(Path *path, const char *dir) {
   path->num_dirs++;
 }
 
-void exit_command(Command command) {
+void execute_exit_command(Command command) {
   if (command.num_args == 1) {
     exit(SUCCESS);
   } else {
@@ -99,7 +99,7 @@ void exit_command(Command command) {
   }
 }
 
-void cd_command(Command command) {
+void execute_cd_command(Command command) {
   if (command.num_args == 1) {
     WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
   } else {
@@ -110,7 +110,7 @@ void cd_command(Command command) {
   }
 }
 
-void path_command(Command command, Path *path) {
+void execute_path_command(Command command, Path *path) {
   if (command.num_args == 1) {
     set_path(path, "");
   } else {
@@ -127,19 +127,8 @@ bool is_builtin(Command command) {
          strcmp(command.args[0], "exit") == 0;
 }
 
-void execute_builtin(Command command, Path *path) {
-  if (strcmp(command.args[0], "exit") == 0) {
-    exit_command(command);
-  } else if (strcmp(command.args[0], "cd") == 0) {
-    cd_command(command);
-  } else if (strcmp(command.args[0], "path") == 0) {
-    path_command(command, path);
-  } else {
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
-  }
-}
-
-void execute_command(Command command, Path *path) {
+// Executes a non-built-in command
+void execute_external_command(Command command, Path *path) {
   pid_t pid = fork();
   if (pid == -1) {
     perror("fork");
@@ -166,5 +155,27 @@ void execute_command(Command command, Path *path) {
     if (waitpid(pid, &status, 0) == -1) {
       perror("waitpid");
     }
+  }
+}
+
+// Executes a built-in command
+void execute_builtin_command(Command command, Path *path) {
+  if (strcmp(command.args[0], "exit") == 0) {
+    execute_exit_command(command);
+  } else if (strcmp(command.args[0], "cd") == 0) {
+    execute_cd_command(command);
+  } else if (strcmp(command.args[0], "path") == 0) {
+    execute_path_command(command, path);
+  } else {
+    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+  }
+}
+
+// Executes a command
+void execute_command(Command command, Path *path) {
+  if (is_builtin(command)) {
+    execute_builtin_command(command, path);
+  } else {
+    execute_external_command(command, path);
   }
 }

@@ -22,10 +22,11 @@ void set_path(Path *path, const char *new_path);
 
 bool is_builtin(Command command);
 void execute_builtin(Command command, Path *path);
-void exit_command(Command command);
-void cd_command(Command command);
-void path_command(Command command, Path *path);
+void execute_exit_command(Command command);
+void execute_cd_command(Command command);
+void execute_path_command(Command command, Path *path);
 
+void execute_external_command(Command command, Path *path);
 void execute_command(Command command, Path *path);
 
 #endif

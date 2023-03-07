@@ -21,11 +21,7 @@ int main(int argc, char *argv[]) {
          getline(&input, &input_size, file) != -1) {
     Command command = parse_input(input, " \t\n>");
 
-    if (is_builtin(command)) {
-      execute_builtin(command, path);
-    } else {
-      execute_command(command, path);
-    }
+    execute_command(command, path);
 
     free_command(command);
   }
