@@ -155,7 +155,6 @@ void execute_command(Command command, Path *path) {
                command.args[0]);
       if (access(full_path, X_OK) == 0) {
         execv(full_path, command.args);
-        perror("execv"); // Print an error message if execv fails
         exit(EXIT_FAILURE);
       }
     }
