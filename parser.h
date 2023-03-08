@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <stdbool.h>
 #include <stddef.h>
 
 typedef struct Command {
@@ -9,10 +8,11 @@ typedef struct Command {
   int num_args;
 } Command;
 
-static char **split_string(const char *input, const char *delimiter,
-                           size_t *num_tokens, int *redir_flag);
+void free_command(Command command);
+
 Command parse_input(const char *input, const char *delimiter);
 
-void free_command(Command command);
+static char **split_string(const char *input, const char *delimiter,
+                           size_t *num_tokens, int *redir_flag);
 
 #endif

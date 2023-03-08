@@ -54,6 +54,21 @@ static char *allocate_token(size_t token_len, const char *start) {
   return token;
 }
 
+static void handle_redirection(const char **end, int *redir_flag) {
+  if (**end == '>') {
+    *redir_flag = 1;
+    (*end)++;
+  }
+}
+
+static const char *find_end_of_token(const char *start, const char *delimiter) {
+  const char *end = start;
+  while (*end != '\0' && strchr(delimiter, *end) == NULL) {
+    end++;
+  }
+  return end;
+}
+
 static char **split_string(const char *input, const char *delimiter,
                            size_t *num_tokens, int *redir_flag) {
   size_t max_tokens = TOKEN_BUF_SIZE;
@@ -66,15 +81,9 @@ static char **split_string(const char *input, const char *delimiter,
   const char *end = input;
 
   while (*end != '\0') {
-    if (*end == '>') {
-      *redir_flag = 1;
-      end++;
-      continue;
-    }
+    handle_redirection(&end, redir_flag);
 
-    while (*end != '\0' && strchr(delimiter, *end) == NULL) {
-      end++;
-    }
+    end = find_end_of_token(start, delimiter);
 
     if (*num_tokens >= max_tokens) {
       tokens = realloc_tokens(tokens, &max_tokens, num_tokens);
