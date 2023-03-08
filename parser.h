@@ -7,7 +7,6 @@
 typedef struct Command {
   char **args;
   int num_args;
-  bool redirect_found;
 } Command;
 
 Command parse_input(const char *input, const char *delimiter);
