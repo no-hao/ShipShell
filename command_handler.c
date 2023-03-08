@@ -1,4 +1,5 @@
 #include "command_handler.h"
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,7 +129,7 @@ bool is_builtin(Command command) {
 }
 
 // Executes a non-built-in command
-void execute_external_command(Command command, Path *path) {
+void execute_external_command(Command command, Path *path, int redir_flag) {
   pid_t pid = fork();
   if (pid == -1) {
     perror("fork");
@@ -143,6 +144,27 @@ void execute_external_command(Command command, Path *path) {
       snprintf(full_path, sizeof(full_path), "%s/%s", path->dirs[i],
                command.args[0]);
       if (access(full_path, X_OK) == 0) {
+        // Check if output redirection is needed
+        if (redir_flag) {
+          // Check if there are too many output files specified
+          if (command.num_args > 3) {
+            WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+            exit(EXIT_FAILURE);
+          }
+          // Open the output file for writing
+          int fd = open(command.args[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+          if (fd == -1) {
+            WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+            // perror("open");
+            exit(EXIT_FAILURE);
+          }
+          // Redirect stdout to the output file
+          if (dup2(fd, STDOUT_FILENO) == -1) {
+            perror("dup2");
+            exit(EXIT_FAILURE);
+          }
+          close(fd);
+        }
         execv(full_path, command.args);
         exit(EXIT_FAILURE);
       }
@@ -173,9 +195,16 @@ void execute_builtin_command(Command command, Path *path) {
 
 // Executes a command
 void execute_command(Command command, Path *path) {
+  int redir_flag = 0;
+  for (int i = 0; i < command.num_args; i++) {
+    if (strcmp(command.args[i], ">") == 0) {
+      redir_flag = 1;
+      break;
+    }
+  }
   if (is_builtin(command)) {
     execute_builtin_command(command, path);
   } else {
-    execute_external_command(command, path);
+    execute_external_command(command, path, redir_flag);
   }
 }

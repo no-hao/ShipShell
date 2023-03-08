@@ -55,7 +55,7 @@ static char *allocate_token(size_t token_len, const char *start) {
 }
 
 static char **split_string(const char *input, const char *delimiter,
-                           size_t *num_tokens) {
+                           size_t *num_tokens, int *redir_flag) {
   size_t max_tokens = TOKEN_BUF_SIZE;
   char **tokens = initialize_token_pointers(max_tokens, num_tokens);
   if (tokens == NULL) {
@@ -66,6 +66,12 @@ static char **split_string(const char *input, const char *delimiter,
   const char *end = input;
 
   while (*end != '\0') {
+    if (*end == '>') {
+      *redir_flag = 1;
+      end++;
+      continue;
+    }
+
     while (*end != '\0' && strchr(delimiter, *end) == NULL) {
       end++;
     }
@@ -98,8 +104,9 @@ static char **split_string(const char *input, const char *delimiter,
 }
 
 Command parse_input(const char *input, const char *delimiter) {
+  int redir_flag = 0;
   size_t num_tokens = 0;
-  char **tokens = split_string(input, delimiter, &num_tokens);
+  char **tokens = split_string(input, delimiter, &num_tokens, &redir_flag);
   Command command = {tokens, num_tokens};
   return command;
 }
