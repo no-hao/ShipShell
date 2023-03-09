@@ -3,6 +3,13 @@
 
 #include <stddef.h>
 
+typedef enum {
+  PARSE_ERROR_NONE = 0,
+  PARSE_ERROR_MEMORY,
+  PARSE_ERROR_TOKENS,
+  PARSE_ERROR_REDIRECTION
+} ParseError;
+
 typedef struct Command {
   char **args;
   int num_args;

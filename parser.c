@@ -13,17 +13,27 @@ void free_command(Command command) {
   free(command.args);
 }
 
-static void strip_trailing_whitespace(char *s) {
+static char *strip_trailing_whitespace(const char *s) {
   size_t len = strlen(s);
   while (len > 0 && isspace(s[len - 1])) {
-    s[--len] = '\0';
+    len--;
   }
+  char *result = malloc(len + 1);
+  if (result == NULL) {
+    perror("Error: failed to allocate memory for result");
+    return NULL;
+  }
+  memcpy(result, s, len);
+  result[len] = '\0';
+  return result;
 }
 
 static char **initialize_token_pointers(size_t max_tokens, size_t *num_tokens) {
-  char **tokens = malloc(max_tokens * sizeof(*tokens));
+  const size_t initial_size = 16;
+  char **tokens = malloc(initial_size * sizeof(*tokens));
   if (tokens == NULL) {
-    perror("Error: failed to allocate memory for tokens");
+    *num_tokens = 0;
+  } else {
     *num_tokens = 0;
   }
   return tokens;
@@ -34,7 +44,6 @@ static char **realloc_tokens(char **tokens, size_t *max_tokens,
   *max_tokens += TOKEN_BUF_SIZE;
   char **new_tokens = realloc(tokens, (*max_tokens) * sizeof(*tokens));
   if (new_tokens == NULL) {
-    perror("Error: failed to reallocate memory for tokens");
     free(tokens);
     *num_tokens = 0;
     return NULL;
@@ -50,8 +59,9 @@ static char *allocate_token(size_t token_len, const char *start) {
   }
   memcpy(token, start, token_len);
   token[token_len] = '\0';
-  strip_trailing_whitespace(token);
-  return token;
+  char *stripped_token = strip_trailing_whitespace(token);
+  free(token);
+  return stripped_token;
 }
 
 static void handle_redirection(const char **end, int *redir_flag) {
