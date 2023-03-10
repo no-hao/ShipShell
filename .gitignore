@@ -64,3 +64,5 @@ tests-out/
 # gitignore templates
 .gitignore_global
 
+# gitignore my test code file.
+test_ideas.c

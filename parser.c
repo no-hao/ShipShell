@@ -33,8 +33,6 @@ static char **initialize_token_pointers(size_t max_tokens, size_t *num_tokens) {
   char **tokens = malloc(initial_size * sizeof(*tokens));
   if (tokens == NULL) {
     *num_tokens = 0;
-  } else {
-    *num_tokens = 0;
   }
   return tokens;
 }
