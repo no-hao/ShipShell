@@ -1,4 +1,5 @@
 #include "command_handler.h"
+#include "error_handler.h"
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -11,7 +12,6 @@ char *path;
 int num_of_paths = 0;
 const int ERROR = 1;
 const int SUCCESS = 0;
-const char *const ERROR_MESSAGE = "An error has occurred\n";
 
 // Initialize the path
 Path *init_path() {
@@ -96,17 +96,17 @@ void execute_exit_command(Command command) {
   if (command.num_args == 1) {
     exit(SUCCESS);
   } else {
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    print_error_message();
   }
 }
 
 void execute_cd_command(Command command) {
   if (command.num_args == 1) {
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    print_error_message();
   } else {
     int result = chdir(command.args[1]);
     if (result != SUCCESS) {
-      WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+      print_error_message();
     }
   }
 }
@@ -135,7 +135,7 @@ void execute_external_command(Command command, Path *path, int redir_flag) {
     perror("fork");
   } else if (pid == 0) {
     if (path == NULL) {
-      WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+      print_error_message();
       exit(EXIT_FAILURE);
     }
 
@@ -148,13 +148,13 @@ void execute_external_command(Command command, Path *path, int redir_flag) {
         if (redir_flag) {
           // Check if there are too many output files specified
           if (command.num_args > 3) {
-            WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+            print_error_message();
             exit(EXIT_FAILURE);
           }
           // Open the output file for writing
           int fd = open(command.args[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
           if (fd == -1) {
-            WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+            print_error_message();
             // perror("open");
             exit(EXIT_FAILURE);
           }
@@ -170,7 +170,7 @@ void execute_external_command(Command command, Path *path, int redir_flag) {
       }
     }
 
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    print_error_message();
     exit(EXIT_FAILURE);
   } else {
     int status;
@@ -189,7 +189,7 @@ void execute_builtin_command(Command command, Path *path) {
   } else if (strcmp(command.args[0], "path") == 0) {
     execute_path_command(command, path);
   } else {
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    print_error_message();
   }
 }
 

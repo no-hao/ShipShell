@@ -1,26 +1,11 @@
 #include "parser.h"
+#include "error_handler.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define INITIAL_TOKEN_CAPACITY 16
-
-void throw_parse_error(ParseError error) {
-  switch (error) {
-  case PARSE_ERROR_MEMORY:
-    fprintf(stderr, "Error: failed to allocate memory.\n");
-    break;
-  case PARSE_ERROR_TOKENS:
-    fprintf(stderr, "Error: failed to tokenize input.\n");
-    break;
-  case PARSE_ERROR_REDIRECTION:
-    fprintf(stderr, "Error: invalid use of redirection.\n");
-    break;
-  default:
-    fprintf(stderr, "Unknown parse error.\n");
-  }
-}
 
 void destroy_command(Command command) {
   for (size_t i = 0; i < command.num_args; i++) {
@@ -90,10 +75,15 @@ static char **resize_token_array(char **tokens, size_t *max_tokens,
   return new_tokens;
 }
 
-static void determine_redirection(const char **end, int *redir_flag) {
+static void determine_redirection(const char **end,
+                                  RedirectionType *redir_type) {
   if (**end == '>') {
-    *redir_flag = 1;
+    *redir_type = REDIR_OUTPUT;
     (*end)++;
+    // Skip whitespace after the redirection operator
+    while (isspace(**end)) {
+      (*end)++;
+    }
   } else if (**end == '\0') {
     throw_parse_error(PARSE_ERROR_REDIRECTION);
   }
@@ -131,7 +121,7 @@ static int process_token(const char *start, const char *end, char **tokens,
 }
 
 static char **tokenize_input(const char *input, const char *delimiter,
-                             size_t *num_tokens, int *redir_flag) {
+                             size_t *num_tokens, RedirectionType *redir_type) {
   char **tokens = NULL;
   size_t max_tokens = 0;
   const char *start = input;
@@ -143,8 +133,21 @@ static char **tokenize_input(const char *input, const char *delimiter,
     return NULL;
   }
 
+  Redirection redir = {REDIR_NONE, NULL};
+
   while (*end != '\0') {
-    determine_redirection(&end, redir_flag);
+    determine_redirection(&end, redir_type);
+    if (*redir_type != REDIR_NONE) {
+      end = find_end_of_token(start, delimiter);
+      redir.redir_dest = create_token(end - start, start);
+      if (redir.redir_dest == NULL) {
+        throw_parse_error(PARSE_ERROR_MEMORY);
+        free_tokens(tokens, *num_tokens);
+        *num_tokens = 0;
+        return NULL;
+      }
+      break;
+    }
     end = find_end_of_token(start, delimiter);
 
     if (*num_tokens >= max_tokens) {
@@ -167,13 +170,14 @@ static char **tokenize_input(const char *input, const char *delimiter,
     start = ++end;
   }
 
+  *redir_type = redir.redir_type;
   return tokens;
 }
 
 Command parse_input(const char *input, const char *delimiter) {
-  int redir_flag = 0;
+  RedirectionType redir_type = REDIR_NONE;
   size_t num_tokens = 0;
-  char **tokens = tokenize_input(input, delimiter, &num_tokens, &redir_flag);
+  char **tokens = tokenize_input(input, delimiter, &num_tokens, &redir_type);
   if (tokens == NULL) {
     throw_parse_error(PARSE_ERROR_TOKENS);
     Command command = {NULL, 0};

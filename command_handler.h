@@ -7,8 +7,6 @@
 
 extern const int ERROR;
 extern const int SUCCESS;
-extern const char *const ERROR_MESSAGE;
-#define WRITE_ERROR_MESSAGE(msg) write(STDERR_FILENO, msg, strlen(msg))
 
 // Define a struct to hold the path
 typedef struct Path {
