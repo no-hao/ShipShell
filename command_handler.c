@@ -41,11 +41,14 @@ void set_path(Path *path, const char *new_path) {
   char *new_path_copy = strdup(new_path);
 
   // Split the new path into directories
-  char *token = strtok(new_path_copy, " ");
+  char *token, *str_ptr;
   int num_dirs = 0;
-  while (token != NULL) {
-    num_dirs++;
-    token = strtok(NULL, " ");
+
+  str_ptr = new_path_copy;
+  while ((token = strsep(&str_ptr, " ")) != NULL) {
+    if (*token != '\0') {
+      num_dirs++;
+    }
   }
 
   // Allocate space for the new directories
@@ -53,11 +56,12 @@ void set_path(Path *path, const char *new_path) {
 
   // Copy the new directories
   int i = 0;
-  token = strtok(new_path_copy, " ");
-  while (token != NULL) {
-    path->dirs[i] = strdup(token);
-    i++;
-    token = strtok(NULL, " ");
+  str_ptr = new_path_copy;
+  while ((token = strsep(&str_ptr, " ")) != NULL) {
+    if (*token != '\0') {
+      path->dirs[i] = strdup(token);
+      i++;
+    }
   }
 
   path->num_dirs = num_dirs;
@@ -147,7 +151,10 @@ void execute_external_command(Command command, Path *path, int redir_flag) {
         // Check if output redirection is needed
         if (redir_flag) {
           // Check if there are too many output files specified
-          if (command.num_args > 3) {
+          if (command.num_args == 2) {
+            print_error_message();
+            exit(EXIT_FAILURE);
+          } else if (command.num_args > 3) {
             print_error_message();
             exit(EXIT_FAILURE);
           }

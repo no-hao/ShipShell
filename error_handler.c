@@ -13,7 +13,8 @@ void throw_parse_error(ParseError error) {
     fprintf(stderr, "Error: failed to tokenize input.\n");
     break;
   case PARSE_ERROR_REDIRECTION:
-    fprintf(stderr, "Error: invalid use of redirection.\n");
+    // fprintf(stderr, "Error: invalid use of redirection.\n");
+    print_error_message();
     break;
   default:
     fprintf(stderr, "Unknown parse error.\n");

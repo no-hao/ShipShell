@@ -84,6 +84,11 @@ static void determine_redirection(const char **end,
     while (isspace(**end)) {
       (*end)++;
     }
+    // Check if there is a filename after the whitespace
+    if (**end == '\0') {
+      throw_parse_error(PARSE_ERROR_REDIRECTION);
+      exit(0);
+    }
   } else if (**end == '\0') {
     throw_parse_error(PARSE_ERROR_REDIRECTION);
   }
