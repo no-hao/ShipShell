@@ -1,5 +1,6 @@
 #include "command_handler.h"
 #include "parser.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,12 +9,11 @@
 int main(int argc, char *argv[]) {
   char *input = NULL;
   size_t input_size = 0;
-  int line_number = 1;
   FILE *file = stdin;
   Path *path = init_path();
 
   if (argc == 2 && (file = fopen(argv[1], "r")) == NULL) {
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    fprintf(stderr, "Error opening file '%s': %s\n", argv[1], strerror(errno));
     return 1;
   }
 
@@ -23,11 +23,11 @@ int main(int argc, char *argv[]) {
 
     execute_command(command, path);
 
-    free_command(command);
+    destroy_command(command);
   }
 
   if (ferror(file)) {
-    WRITE_ERROR_MESSAGE(ERROR_MESSAGE);
+    fprintf(stderr, "Error reading from file: %s\n", strerror(errno));
   }
 
   free(input);
