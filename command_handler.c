@@ -139,6 +139,55 @@ bool is_builtin(Command command) {
          strcmp(command.args[0], "exit") == 0;
 }
 
+void redirect_output(Command command) {
+  int output_index = -1;
+
+  // Find the index of the output redirection symbol
+  for (int i = 0; i < command.num_args; i++) {
+    if (strcmp(command.args[i], ">") == 0) {
+      output_index = i;
+      break;
+    }
+  }
+
+  // Check if there is an output file specified
+  if (output_index == -1 || output_index == command.num_args - 1 ||
+      command.num_args - output_index != 2) {
+    print_error_message();
+    exit(EXIT_FAILURE);
+  }
+
+  // Open the output file for writing
+  int fd =
+      open(command.args[output_index + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (fd == -1) {
+    print_error_message();
+    // perror("open");
+    exit(EXIT_FAILURE);
+  }
+
+  // Redirect stdout to the output file
+  if (dup2(fd, STDOUT_FILENO) == -1) {
+    perror("dup2");
+    exit(EXIT_FAILURE);
+  }
+
+  close(fd);
+}
+
+// Executes a built-in command
+void execute_builtin_command(Command command, Path *path) {
+  if (strcmp(command.args[0], "exit") == 0) {
+    execute_exit_command(command);
+  } else if (strcmp(command.args[0], "cd") == 0) {
+    execute_cd_command(command);
+  } else if (strcmp(command.args[0], "path") == 0) {
+    execute_path_command(command, path);
+  } else {
+    print_error_message();
+  }
+}
+
 // Executes a non-built-in command
 void execute_external_command(Command command, Path *path, int redir_flag) {
   pid_t pid = fork();
@@ -157,27 +206,7 @@ void execute_external_command(Command command, Path *path, int redir_flag) {
       if (access(full_path, X_OK) == 0) {
         // Check if output redirection is needed
         if (redir_flag) {
-          // Check if there are too many output files specified
-          if (command.num_args == 2) {
-            print_error_message();
-            exit(EXIT_FAILURE);
-          } else if (command.num_args > 3) {
-            print_error_message();
-            exit(EXIT_FAILURE);
-          }
-          // Open the output file for writing
-          int fd = open(command.args[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-          if (fd == -1) {
-            print_error_message();
-            // perror("open");
-            exit(EXIT_FAILURE);
-          }
-          // Redirect stdout to the output file
-          if (dup2(fd, STDOUT_FILENO) == -1) {
-            perror("dup2");
-            exit(EXIT_FAILURE);
-          }
-          close(fd);
+          redirect_output(command);
         }
         execv(full_path, command.args);
         exit(EXIT_FAILURE);
@@ -191,19 +220,6 @@ void execute_external_command(Command command, Path *path, int redir_flag) {
     if (waitpid(pid, &status, 0) == -1) {
       perror("waitpid");
     }
-  }
-}
-
-// Executes a built-in command
-void execute_builtin_command(Command command, Path *path) {
-  if (strcmp(command.args[0], "exit") == 0) {
-    execute_exit_command(command);
-  } else if (strcmp(command.args[0], "cd") == 0) {
-    execute_cd_command(command);
-  } else if (strcmp(command.args[0], "path") == 0) {
-    execute_path_command(command, path);
-  } else {
-    print_error_message();
   }
 }
 
