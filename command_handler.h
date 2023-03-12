@@ -24,6 +24,7 @@ typedef struct Path {
  */
 void destroy_command(Command command);
 
+void print_commands(Command command);
 Path *init_path();
 void free_path(Path *path);
 void set_path(Path *path, const char *new_path);

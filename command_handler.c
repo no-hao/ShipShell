@@ -13,6 +13,12 @@ int num_of_paths = 0;
 const int ERROR = 1;
 const int SUCCESS = 0;
 
+void print_commands(Command command) {
+  for (int i = 0; i < command.num_args; i++) {
+    printf("Command[%d]: %s\n", i, command.args[i]);
+  }
+}
+
 // Initialize the path
 Path *init_path() {
   Path *path = malloc(sizeof(Path));
@@ -235,6 +241,8 @@ void execute_command(Command command, Path *path) {
   if (is_builtin(command)) {
     execute_builtin_command(command, path);
   } else {
+    // for debugging purpoes
+    // print_commands(command);
     execute_external_command(command, path, redir_flag);
   }
 }
