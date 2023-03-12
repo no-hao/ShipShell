@@ -97,6 +97,6 @@ Command parse_input(const char *input, const char *delimiter);
  * @return An array of tokens, or NULL if memory allocation failed.
  */
 static char **tokenize_input(const char *input, const char *delimiter,
-                             size_t *num_tokens, RedirectionType *redir_type);
+                             size_t *num_tokens, Redirection *redir);
 
 #endif

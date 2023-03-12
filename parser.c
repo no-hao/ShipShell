@@ -28,15 +28,23 @@ static int remove_trailing_whitespace(const char *s, char **result) {
   return 0;
 }
 
-static char **create_token_array(size_t max_tokens, size_t *num_tokens) {
-  const size_t initial_size = 16;
-  char **tokens = malloc(initial_size * sizeof(*tokens));
-  if (tokens == NULL) {
-    *num_tokens = 0;
-  } else {
-    *num_tokens = 0;
+static void determine_redirection(const char **end,
+                                  RedirectionType *redir_type) {
+  if (**end == '>') {
+    *redir_type = REDIR_OUTPUT;
+    (*end)++;
+    // Skip whitespace after the redirection operator
+    while (isspace(**end)) {
+      (*end)++;
+    }
+    // Check if there is a filename after the whitespace
+    if (**end == '\0') {
+      throw_parse_error(PARSE_ERROR_REDIRECTION);
+      exit(0);
+    }
+  } else if (**end == '\0') {
+    throw_parse_error(PARSE_ERROR_REDIRECTION);
   }
-  return tokens;
 }
 
 static char *create_token(size_t token_len, const char *start) {
@@ -57,6 +65,17 @@ static char *create_token(size_t token_len, const char *start) {
   return stripped_token;
 }
 
+static char **create_token_array(size_t max_tokens, size_t *num_tokens) {
+  const size_t initial_size = 16;
+  char **tokens = malloc(initial_size * sizeof(*tokens));
+  if (tokens == NULL) {
+    *num_tokens = 0;
+  } else {
+    *num_tokens = 0;
+  }
+  return tokens;
+}
+
 static char **resize_token_array(char **tokens, size_t *max_tokens,
                                  size_t *num_tokens) {
   *max_tokens += INITIAL_TOKEN_CAPACITY;
@@ -73,25 +92,6 @@ static char **resize_token_array(char **tokens, size_t *max_tokens,
     return NULL;
   }
   return new_tokens;
-}
-
-static void determine_redirection(const char **end,
-                                  RedirectionType *redir_type) {
-  if (**end == '>') {
-    *redir_type = REDIR_OUTPUT;
-    (*end)++;
-    // Skip whitespace after the redirection operator
-    while (isspace(**end)) {
-      (*end)++;
-    }
-    // Check if there is a filename after the whitespace
-    if (**end == '\0') {
-      throw_parse_error(PARSE_ERROR_REDIRECTION);
-      exit(0);
-    }
-  } else if (**end == '\0') {
-    throw_parse_error(PARSE_ERROR_REDIRECTION);
-  }
 }
 
 static const char *find_end_of_token(const char *start, const char *delimiter) {
@@ -126,68 +126,61 @@ static int process_token(const char *start, const char *end, char **tokens,
 }
 
 static char **tokenize_input(const char *input, const char *delimiter,
-                             size_t *num_tokens, RedirectionType *redir_type) {
-  char **tokens = NULL;
-  size_t max_tokens = 0;
-  const char *start = input;
-  const char *end = input;
-
-  tokens = create_token_array(max_tokens, num_tokens);
+                             size_t *num_tokens, Redirection *redir) {
+  size_t max_tokens = 8;
+  char **tokens = create_token_array(max_tokens, num_tokens);
   if (tokens == NULL) {
-    throw_parse_error(PARSE_ERROR_MEMORY);
     return NULL;
   }
 
-  Redirection redir = {REDIR_NONE, NULL};
-
-  while (*end != '\0') {
-    determine_redirection(&end, redir_type);
-    if (*redir_type != REDIR_NONE) {
-      end = find_end_of_token(start, delimiter);
-      redir.redir_dest = create_token(end - start, start);
-      if (redir.redir_dest == NULL) {
-        throw_parse_error(PARSE_ERROR_MEMORY);
-        free_tokens(tokens, *num_tokens);
-        *num_tokens = 0;
-        return NULL;
-      }
-      break;
-    }
+  const char *start = input;
+  const char *end = NULL;
+  size_t token_len = 0;
+  while (*start != '\0') {
     end = find_end_of_token(start, delimiter);
-
-    if (*num_tokens >= max_tokens) {
-      tokens = resize_token_array(tokens, &max_tokens, num_tokens);
-      if (tokens == NULL) {
-        throw_parse_error(PARSE_ERROR_MEMORY);
-        free_tokens(tokens, *num_tokens);
-        *num_tokens = 0;
-        return NULL;
-      }
-    }
-
-    if (!process_token(start, end, tokens, num_tokens)) {
-      throw_parse_error(PARSE_ERROR_MEMORY);
+    if (process_token(start, end, tokens, num_tokens) == false) {
       free_tokens(tokens, *num_tokens);
-      *num_tokens = 0;
       return NULL;
     }
-
-    start = ++end;
+    start = end + 1;
   }
 
-  *redir_type = redir.redir_type;
+  if (redir != NULL && *num_tokens > 1) {
+    RedirectionType redir_type = REDIR_NONE;
+    char *redir_dest = tokens[*num_tokens - 1];
+    if (strcmp(redir_dest, ">") == 0) {
+      redir_type = REDIR_OUTPUT;
+    } else if (strcmp(redir_dest, "<") == 0) {
+      redir_type = REDIR_INPUT;
+    } else if (strcmp(redir_dest, ">>") == 0) {
+      redir_type = REDIR_APPEND;
+    }
+
+    if (redir_type != REDIR_NONE) {
+      *redir = (Redirection){redir_type, tokens[*num_tokens - 2]};
+      *num_tokens -= 2;
+    }
+  }
+
+  tokens = resize_token_array(tokens, &max_tokens, num_tokens);
   return tokens;
 }
 
 Command parse_input(const char *input, const char *delimiter) {
   RedirectionType redir_type = REDIR_NONE;
   size_t num_tokens = 0;
-  char **tokens = tokenize_input(input, delimiter, &num_tokens, &redir_type);
+  char **tokens = tokenize_input(input, delimiter, &num_tokens, NULL);
   if (tokens == NULL) {
     throw_parse_error(PARSE_ERROR_TOKENS);
     Command command = {NULL, 0};
     return command;
   }
   Command command = {tokens, num_tokens};
+  command.redirection.redir_type = redir_type;
+  if (redir_type != REDIR_NONE) {
+    command.redirection.redir_dest = tokens[num_tokens - 1];
+    printf("Redirection type: %d\n", redir_type);
+    printf("Redirection destination: %s\n", command.redirection.redir_dest);
+  }
   return command;
 }
