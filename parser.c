@@ -93,6 +93,10 @@ static int process_token(const char *start, const char *end, char **tokens,
                          size_t *num_tokens) {
   size_t token_len = end - start;
   if (token_len > 0) {
+    // Skip redirection operators
+    if (*start == '>' || *start == '<') {
+      return 1;
+    }
     char *token = create_token(token_len, start);
     if (token == NULL) {
       return 0;
