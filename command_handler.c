@@ -96,6 +96,13 @@ void add_directory_to_path(Path *path, const char *dir) {
   path->num_dirs++;
 }
 
+void destroy_command(Command command) {
+  for (size_t i = 0; i < command.num_args; i++) {
+    free(command.args[i]);
+  }
+  free(command.args);
+}
+
 void execute_exit_command(Command command) {
   if (command.num_args == 1) {
     exit(SUCCESS);

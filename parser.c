@@ -7,13 +7,6 @@
 
 #define INITIAL_TOKEN_CAPACITY 16
 
-void destroy_command(Command command) {
-  for (size_t i = 0; i < command.num_args; i++) {
-    free(command.args[i]);
-  }
-  free(command.args);
-}
-
 static int remove_trailing_whitespace(const char *s, char **result) {
   size_t len = strlen(s);
   while (len > 0 && isspace(s[len - 1])) {

@@ -45,16 +45,6 @@ static int process_token(const char *start, const char *end, char **tokens,
                          size_t *num_tokens);
 
 /**
- * @brief Frees the memory allocated for a Command struct.
- *
- * This function frees the memory allocated for a Command struct, including the
- * token array and any memory allocated for the redirection destination.
- *
- * @param command The Command struct to be freed.
- */
-void destroy_command(Command command);
-
-/**
  * @brief Creates a token from a given start position and length.
  *
  * This function creates a token from a given start position and length.

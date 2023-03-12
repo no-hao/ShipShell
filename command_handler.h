@@ -14,6 +14,16 @@ typedef struct Path {
   int num_dirs;
 } Path;
 
+/**
+ * @brief Frees the memory allocated for a Command struct.
+ *
+ * This function frees the memory allocated for a Command struct, including the
+ * token array and any memory allocated for the redirection destination.
+ *
+ * @param command The Command struct to be freed.
+ */
+void destroy_command(Command command);
+
 Path *init_path();
 void free_path(Path *path);
 void set_path(Path *path, const char *new_path);
