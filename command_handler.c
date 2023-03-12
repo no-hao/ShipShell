@@ -163,6 +163,13 @@ void redirect_output(Command command) {
     exit(EXIT_FAILURE);
   }
 
+  // Duplicate the stdout stream descriptor
+  int stdout_copy = dup(STDOUT_FILENO);
+  if (stdout_copy == -1) {
+    perror("dup");
+    exit(EXIT_FAILURE);
+  }
+
   // Open the output file for writing
   int fd =
       open(command.args[output_index + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -179,6 +186,14 @@ void redirect_output(Command command) {
   }
 
   close(fd);
+
+  // Restore the original stdout stream
+  if (dup2(stdout_copy, STDOUT_FILENO) == -1) {
+    perror("dup2");
+    exit(EXIT_FAILURE);
+  }
+
+  close(stdout_copy);
 }
 
 // Executes a built-in command
