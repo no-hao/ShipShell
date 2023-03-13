@@ -19,6 +19,28 @@ void print_commands(Command command) {
   }
 }
 
+void print_redirection_info(Command command) {
+  if (command.redirection.redir_type == REDIR_NONE) {
+    printf("No redirection\n");
+  } else {
+    printf("Redirection type: ");
+    switch (command.redirection.redir_type) {
+    case REDIR_OUTPUT:
+      printf("output\n");
+      break;
+    case REDIR_INPUT:
+      printf("input\n");
+      break;
+    case REDIR_APPEND:
+      printf("append\n");
+      break;
+    default:
+      printf("unknown\n");
+    }
+    printf("Redirection destination: %s\n", command.redirection.redir_dest);
+  }
+}
+
 // Initialize the path
 Path *init_path() {
   Path *path = malloc(sizeof(Path));
@@ -246,18 +268,12 @@ void execute_external_command(Command command, Path *path, int redir_flag) {
 
 // Executes a command
 void execute_command(Command command, Path *path) {
-  int redir_flag = 0;
-  for (int i = 0; i < command.num_args; i++) {
-    if (strcmp(command.args[i], ">") == 0) {
-      redir_flag = 1;
-      break;
-    }
-  }
+  // print_redirection_info(command);
   if (is_builtin(command)) {
     execute_builtin_command(command, path);
   } else {
-    // for debugging purpoes
-    // print_commands(command);
-    execute_external_command(command, path, redir_flag);
+    // print_commands();
+    execute_external_command(command, path,
+                             command.redirection.redir_type != REDIR_NONE);
   }
 }
