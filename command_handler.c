@@ -272,7 +272,7 @@ void execute_command(Command command, Path *path) {
   if (is_builtin(command)) {
     execute_builtin_command(command, path);
   } else {
-    // print_commands();
+    // print_commands(command);
     execute_external_command(command, path,
                              command.redirection.redir_type != REDIR_NONE);
   }

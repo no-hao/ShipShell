@@ -86,7 +86,8 @@ static void free_tokens(char **tokens, size_t num_tokens);
 @return 1 on success, 0 on memory allocation error.
 */
 static int process_token(const char *start, const char *end, char **tokens,
-                         size_t *num_tokens);
+                         size_t *num_tokens, RedirectionType *redir_type,
+                         char **redir_dest);
 
 /**
 @brief Tokenizes the input string.
@@ -97,7 +98,8 @@ static int process_token(const char *start, const char *end, char **tokens,
 must be freed by the caller.
 */
 static char **tokenize_input(const char *input, const char *delimiter,
-                             size_t *num_tokens);
+                             size_t *num_tokens, RedirectionType *redir_type,
+                             char **redir_dest);
 
 /**
 @brief Parses the input string into a command.

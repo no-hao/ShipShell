@@ -90,24 +90,45 @@ static void free_tokens(char **tokens, size_t num_tokens) {
 }
 
 static int process_token(const char *start, const char *end, char **tokens,
-                         size_t *num_tokens) {
+                         size_t *num_tokens, RedirectionType *redir_type,
+                         char **redir_dest) {
   size_t token_len = end - start;
   if (token_len > 0) {
-    // Skip redirection operators
-    if (*start == '>' || *start == '<') {
-      return 1;
+    // Check if token is a redirection operator
+    if (*start == '>') {
+      *redir_type = REDIR_OUTPUT;
+      if (token_len > 1) {
+        // Remove the redirection operator from the token
+        char *token = create_token(token_len - 1, start + 1);
+        if (token == NULL) {
+          return 0;
+        }
+        *redir_dest = token;
+      }
+    } else if (*start == '<') {
+      *redir_type = REDIR_INPUT;
+      if (token_len > 1) {
+        // Remove the redirection operator from the token
+        char *token = create_token(token_len - 1, start + 1);
+        if (token == NULL) {
+          return 0;
+        }
+        *redir_dest = token;
+      }
+    } else {
+      char *token = create_token(token_len, start);
+      if (token == NULL) {
+        return 0;
+      }
+      tokens[(*num_tokens)++] = token;
     }
-    char *token = create_token(token_len, start);
-    if (token == NULL) {
-      return 0;
-    }
-    tokens[(*num_tokens)++] = token;
   }
   return 1;
 }
 
 static char **tokenize_input(const char *input, const char *delimiter,
-                             size_t *num_tokens) {
+                             size_t *num_tokens, RedirectionType *redir_type,
+                             char **redir_dest) {
   size_t max_tokens = 8;
   char **tokens = create_token_array(max_tokens, num_tokens);
   if (tokens == NULL) {
@@ -119,7 +140,8 @@ static char **tokenize_input(const char *input, const char *delimiter,
   size_t token_len = 0;
   while (*start != '\0') {
     end = find_end_of_token(start, delimiter);
-    if (process_token(start, end, tokens, num_tokens) == false) {
+    if (process_token(start, end, tokens, num_tokens, redir_type, redir_dest) ==
+        false) {
       free_tokens(tokens, *num_tokens);
       return NULL;
     }
@@ -136,12 +158,15 @@ static char **tokenize_input(const char *input, const char *delimiter,
 
 Command parse_input(const char *input, const char *delimiter) {
   size_t num_tokens = 0;
-  char **tokens = tokenize_input(input, delimiter, &num_tokens);
+  RedirectionType redir_type = REDIR_NONE;
+  char *redir_dest = NULL;
+  char **tokens =
+      tokenize_input(input, delimiter, &num_tokens, &redir_type, &redir_dest);
   if (tokens == NULL) {
     throw_parse_error(PARSE_ERROR_TOKENS);
-    Command command = {NULL, 0};
+    Command command = {NULL, 0, {REDIR_NONE, NULL}};
     return command;
   }
-  Command command = {tokens, num_tokens};
+  Command command = {tokens, num_tokens, {redir_type, redir_dest}};
   return command;
 }
