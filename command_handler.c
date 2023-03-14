@@ -6,14 +6,15 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-char *path;
 const int ERROR = 1;
 const int SUCCESS = 0;
 
+Path path;
+
 void init_path() {
-  // allocate memory for "/bin" plus null terminator
-  path = (char *)malloc(sizeof(char) * 32);
-  strcpy(path, "/bin");
+  path.dirs = (char **)malloc(sizeof(char *));
+  path.dirs[0] = strdup("/bin");
+  path.num_dirs = 1;
 }
 
 bool is_builtin(TokenList tokens) {
@@ -22,18 +23,41 @@ bool is_builtin(TokenList tokens) {
           strcmp(tokens.tokens[0], "exit") == 0);
 }
 
-void set_path(char **path, const char *new_path) {
-  if (*path != NULL) {
-    free(*path);
-    *path = NULL;
+void set_path(Path *path, const char *new_path) {
+  // Free the memory used by the current path
+  for (int i = 0; i < path->num_dirs; i++) {
+    free(path->dirs[i]);
   }
+  free(path->dirs);
 
   if (new_path == NULL || strcmp(new_path, "") == 0) {
-    *path = NULL;
+    // If new path is empty, reset the path to "/bin"
+    path->dirs = (char **)malloc(sizeof(char *));
+    path->dirs[0] = strdup("/bin");
+    path->num_dirs = 1;
   } else {
-    *path = (char *)malloc(sizeof(char) * (strlen(new_path) + 1));
-    strcpy(*path, new_path);
+    // Split the new path into individual directories using ":" as delimiter
+    char *p = strdup(new_path);
+    char *delim = ":";
+    char *token = NULL;
+    path->num_dirs = 0;
+    path->dirs = NULL;
+    while ((token = strsep(&p, delim)) != NULL) {
+      if (strcmp(token, "") != 0) {
+        path->num_dirs++;
+        path->dirs =
+            (char **)realloc(path->dirs, sizeof(char *) * path->num_dirs);
+        path->dirs[path->num_dirs - 1] = strdup(token);
+      }
+    }
+    free(p);
   }
+}
+
+void add_path_directory(Path *path, const char *new_path) {
+  path->num_dirs++;
+  path->dirs = (char **)realloc(path->dirs, sizeof(char *) * path->num_dirs);
+  path->dirs[path->num_dirs - 1] = strdup(new_path);
 }
 
 void execute_builtin(TokenList tokens) {
@@ -54,29 +78,12 @@ void execute_builtin(TokenList tokens) {
     }
   } else if (strcmp(tokens.tokens[0], "path") == 0) {
     if (tokens.num_tokens == 1) {
-      set_path(&path, "\0");
+      set_path(&path, "");
     } else {
-      // Concatenate all the path tokens into a single string separated by
-      // colons
-      char *new_path_str = NULL;
-      for (int i = 1; i < tokens.num_tokens; i++) {
-        if (new_path_str == NULL) {
-          new_path_str = strdup(tokens.tokens[i]);
-        } else {
-          char *temp = strdup(new_path_str);
-          free(new_path_str);
-          new_path_str = (char *)malloc(
-              sizeof(char) * (strlen(temp) + strlen(tokens.tokens[i]) + 2));
-          sprintf(new_path_str, "%s:%s", temp, tokens.tokens[i]);
-          free(temp);
-        }
+      set_path(&path, tokens.tokens[1]);
+      for (int i = 2; i < tokens.num_tokens; i++) {
+        add_path_directory(&path, tokens.tokens[i]);
       }
-
-      // Update the path variable with the concatenated path string
-      set_path(&path, new_path_str);
-
-      // Free the memory used by the concatenated path string
-      free(new_path_str);
     }
   } else {
     print_error();
@@ -88,24 +95,20 @@ void execute_command(TokenList tokens) {
   if (pid == -1) {
     perror("fork");
   } else if (pid == 0) {
-    if (path == NULL) {
+    if (path.num_dirs == 0) {
       print_error();
       exit(EXIT_FAILURE);
     }
 
     char full_path[255];
-    char *p = path;
-    char *delim = ":";
-    char *token = strsep(&p, delim);
-    while (token != NULL) {
-      sprintf(full_path, "%s/%s", token, tokens.tokens[0]);
+    for (int i = 0; i < path.num_dirs; i++) {
+      sprintf(full_path, "%s/%s", path.dirs[i], tokens.tokens[0]);
       if (access(full_path, X_OK) == 0) {
         if (execv(full_path, tokens.tokens) == -1) {
           // print_error();
           exit(EXIT_FAILURE);
         }
       }
-      token = strsep(&p, delim);
     }
     print_error();
     exit(EXIT_FAILURE);
