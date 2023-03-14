@@ -1,5 +1,6 @@
 #include "command_handler.h"
 #include "parser.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,8 +20,18 @@ int main(int argc, char *argv[]) {
 
   while (file == stdin ? printf("wish> ") : 0,
          getline(&input, &input_size, file) != -1) {
-    TokenList tokens = tokenize_input(input, " \t\n");
+    // Ignore leading whitespace
+    char *start = input;
+    while (*start != '\0' && isspace(*start)) {
+      start++;
+    }
 
+    // Skip empty lines
+    if (*start == '\0') {
+      continue;
+    }
+
+    TokenList tokens = tokenize_input(start, " \t\n");
     if (is_builtin(tokens)) {
       execute_builtin(tokens);
     } else {
