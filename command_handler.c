@@ -31,14 +31,13 @@ void set_path(Path *path, const char *new_path) {
   free(path->dirs);
 
   if (new_path == NULL || strcmp(new_path, "") == 0) {
-    // If new path is empty, reset the path to "/bin"
-    path->dirs = (char **)malloc(sizeof(char *));
-    path->dirs[0] = strdup("/bin");
-    path->num_dirs = 1;
+    // If new path is empty, reset the path to an empty one
+    path->dirs = NULL;
+    path->num_dirs = 0;
   } else {
-    // Split the new path into individual directories using ":" as delimiter
+    // Split the new path into individual directories using " " as delimiter
     char *p = strdup(new_path);
-    char *delim = ":";
+    char *delim = " ";
     char *token = NULL;
     path->num_dirs = 0;
     path->dirs = NULL;
