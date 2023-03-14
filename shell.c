@@ -20,6 +20,9 @@ int main(int argc, char *argv[]) {
 
   while (file == stdin ? printf("wish> ") : 0,
          getline(&input, &input_size, file) != -1) {
+    // Initialize tokens to empty list
+    TokenList tokens = {.tokens = NULL, .num_tokens = 0};
+
     // Ignore leading whitespace
     char *start = input;
     while (*start != '\0' && isspace(*start)) {
@@ -31,22 +34,26 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    TokenList tokens = tokenize_input(start, " \t\n");
+    tokens = tokenize_input(start, " \t\n");
     if (is_builtin(tokens)) {
       execute_builtin(tokens);
     } else {
       execute_command(tokens);
     }
 
+    // Free tokens
     free(tokens.tokens);
   }
 
+  // Check for file errors and close file
   if (ferror(file)) {
     print_error();
   }
 
-  free(input);
   fclose(file);
+
+  // Free input
+  free(input);
 
   return 0;
 }
