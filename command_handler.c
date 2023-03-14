@@ -126,6 +126,9 @@ void execute_command(TokenList tokens) {
       if (i == tokens.num_tokens - 1) {
         print_error();
         return;
+      } else if (i + 2 < tokens.num_tokens) {
+        print_error();
+        return;
       }
       redirection.out_file = tokens.tokens[i + 1];
       tokens.tokens[i] = NULL;
