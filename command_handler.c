@@ -123,7 +123,7 @@ void execute_command(TokenList tokens) {
   for (int i = 0; i < tokens.num_tokens; i++) {
     if (strcmp(tokens.tokens[i], ">") == 0) {
       // Redirect output to file
-      if (i == tokens.num_tokens - 1) {
+      if (i == tokens.num_tokens - 1 || i == 0 || i != tokens.num_tokens - 2) {
         print_error();
         return;
       }
@@ -133,7 +133,7 @@ void execute_command(TokenList tokens) {
       break;
     } else if (strcmp(tokens.tokens[i], "<") == 0) {
       // Redirect input from file
-      if (i == tokens.num_tokens - 1) {
+      if (i == tokens.num_tokens - 1 || i == 0 || i != tokens.num_tokens - 2) {
         print_error();
         return;
       }
