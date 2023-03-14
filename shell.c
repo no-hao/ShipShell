@@ -12,9 +12,9 @@ int main(int argc, char *argv[]) {
   FILE *file = stdin;
   init_path();
 
-  if (argc == 2 && (file = fopen(argv[1], "r")) == NULL) {
-    print_error( );
-    return 1;
+  if (argc > 2 || (argc == 2 && (file = fopen(argv[1], "r")) == NULL)) {
+    print_error();
+    exit(1);
   }
 
   while (file == stdin ? printf("wish> ") : 0,
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (ferror(file)) {
-    print_error( );
+    print_error();
   }
 
   free(input);
