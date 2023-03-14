@@ -101,12 +101,13 @@ void execute_command(TokenList tokens) {
       sprintf(full_path, "%s/%s", token, tokens.tokens[0]);
       if (access(full_path, X_OK) == 0) {
         if (execv(full_path, tokens.tokens) == -1) {
-          print_error();
+          // print_error();
           exit(EXIT_FAILURE);
         }
       }
       token = strsep(&p, delim);
     }
+    print_error();
     exit(EXIT_FAILURE);
   } else {
     int status;
