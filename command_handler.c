@@ -89,7 +89,61 @@ void execute_builtin(TokenList tokens) {
   }
 }
 
+void redirect(Redirection redirection) {
+  if (redirection.in_file != NULL) {
+    FILE *in_file = fopen(redirection.in_file, "r");
+    if (in_file == NULL) {
+      print_error();
+      exit(EXIT_FAILURE);
+    }
+    if (dup2(fileno(in_file), STDIN_FILENO) == -1) {
+      perror("dup2");
+      exit(EXIT_FAILURE);
+    }
+    fclose(in_file);
+  }
+  if (redirection.out_file != NULL) {
+    FILE *out_file = fopen(redirection.out_file, "w");
+    if (out_file == NULL) {
+      print_error();
+      exit(EXIT_FAILURE);
+    }
+    if (dup2(fileno(out_file), STDOUT_FILENO) == -1) {
+      perror("dup2");
+      exit(EXIT_FAILURE);
+    }
+    fclose(out_file);
+  }
+}
+
 void execute_command(TokenList tokens) {
+  Redirection redirection = {0};
+
+  // Check for redirection
+  for (int i = 0; i < tokens.num_tokens; i++) {
+    if (strcmp(tokens.tokens[i], ">") == 0) {
+      // Redirect output to file
+      if (i == tokens.num_tokens - 1) {
+        print_error();
+        return;
+      }
+      redirection.out_file = tokens.tokens[i + 1];
+      tokens.tokens[i] = NULL;
+      tokens.num_tokens = i;
+      break;
+    } else if (strcmp(tokens.tokens[i], "<") == 0) {
+      // Redirect input from file
+      if (i == tokens.num_tokens - 1) {
+        print_error();
+        return;
+      }
+      redirection.in_file = tokens.tokens[i + 1];
+      tokens.tokens[i] = NULL;
+      tokens.num_tokens = i;
+      break;
+    }
+  }
+
   pid_t pid = fork();
   if (pid == -1) {
     perror("fork");
@@ -103,6 +157,8 @@ void execute_command(TokenList tokens) {
     for (int i = 0; i < path.num_dirs; i++) {
       sprintf(full_path, "%s/%s", path.dirs[i], tokens.tokens[0]);
       if (access(full_path, X_OK) == 0) {
+        // Redirect input/output if necessary
+        redirect(redirection);
         if (execv(full_path, tokens.tokens) == -1) {
           // print_error();
           exit(EXIT_FAILURE);
