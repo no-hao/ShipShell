@@ -1,3 +1,4 @@
+#include "parser.h"
 #include "util.h"
 #include <ctype.h>
 #include <stdio.h>

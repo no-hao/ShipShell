@@ -1,3 +1,4 @@
+#include "builtin_cmds.h"
 #include "external_cmds.h"
 #include "parser.h"
 #include <ctype.h>
