@@ -1,6 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdbool.h>
+
 typedef struct Redirection {
   int in_fd;
   int out_fd;
@@ -14,8 +16,16 @@ typedef struct TokenList {
   Redirection redirection;
 } TokenList;
 
-void strip_trailing_whitespace(char *s);
+static void strip_trailing_whitespace(char *s);
 
-TokenList tokenize_input(char *input, char *delimiter);
+static bool is_empty_token(const char *token);
+
+static char *create_input_copy(const char *input);
+
+static char **allocate_token_buffer(int max_tokens);
+
+static char **realloc_token_buffer(char **tokens, int max_tokens);
+
+TokenList tokenize_input(const char *input, const char *delimiter);
 
 #endif
