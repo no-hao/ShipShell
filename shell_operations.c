@@ -43,12 +43,12 @@ void redirect_append(const char *filename) {
   fclose(out_file);
 }
 
-void redirect(Redirection redirection) {
-  if (redirection.type == INPUT) {
-    redirect_input(redirection.file);
-  } else if (redirection.type == OUTPUT) {
-    redirect_output(redirection.file);
-  } else if (redirection.type == APPEND) {
-    redirect_append(redirection.file);
+void redirect(Redirection *redirection) {
+  if (redirection->type == INPUT) {
+    redirect_input(redirection->file);
+  } else if (redirection->type == OUTPUT) {
+    redirect_output(redirection->file);
+  } else if (redirection->type == APPEND) {
+    redirect_append(redirection->file);
   }
 }

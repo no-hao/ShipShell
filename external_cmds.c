@@ -7,46 +7,46 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void execute_command(TokenList tokens) {
+void execute_command(TokenList *tokens) {
   Redirection redirection = {REDIR_NONE, NULL};
 
   // Check for redirection
-  for (int i = 0; i < tokens.num_tokens; i++) {
-    if (strcmp(tokens.tokens[i], ">") == 0) {
+  for (int i = 0; i < tokens->num_tokens; i++) {
+    if (strcmp(tokens->tokens[i], ">") == 0) {
       // Redirect output to file
-      if (i == tokens.num_tokens - 1) {
+      if (i == tokens->num_tokens - 1) {
         print_error();
         return;
-      } else if (i + 2 < tokens.num_tokens) {
+      } else if (i + 2 < tokens->num_tokens) {
         print_error();
         return;
       }
       redirection.type = OUTPUT;
-      redirection.file = tokens.tokens[i + 1];
-      tokens.tokens[i] = NULL;
-      tokens.tokens[i + 1] = NULL;
+      redirection.file = tokens->tokens[i + 1];
+      tokens->tokens[i] = NULL;
+      tokens->tokens[i + 1] = NULL;
       break;
-    } else if (strcmp(tokens.tokens[i], "<") == 0) {
+    } else if (strcmp(tokens->tokens[i], "<") == 0) {
       // Redirect input from file
-      if (i == tokens.num_tokens - 1) {
+      if (i == tokens->num_tokens - 1) {
         print_error();
         return;
       }
       redirection.type = INPUT;
-      redirection.file = tokens.tokens[i + 1];
-      tokens.tokens[i] = NULL;
-      tokens.tokens[i + 1] = NULL;
+      redirection.file = tokens->tokens[i + 1];
+      tokens->tokens[i] = NULL;
+      tokens->tokens[i + 1] = NULL;
       break;
-    } else if (strstr(tokens.tokens[i], ">")) {
+    } else if (strstr(tokens->tokens[i], ">")) {
       // Handle cases where there are no spaces around the ">" symbol
-      char *pos = strstr(tokens.tokens[i], ">");
+      char *pos = strstr(tokens->tokens[i], ">");
       *pos = '\0';
       redirection.type = OUTPUT;
       redirection.file = pos + 1;
       break;
-    } else if (strstr(tokens.tokens[i], "<")) {
+    } else if (strstr(tokens->tokens[i], "<")) {
       // Handle cases where there are no spaces around the "<" symbol
-      char *pos = strstr(tokens.tokens[i], "<");
+      char *pos = strstr(tokens->tokens[i], "<");
       *pos = '\0';
       redirection.type = INPUT;
       redirection.file = pos + 1;
@@ -58,18 +58,18 @@ void execute_command(TokenList tokens) {
   if (pid == -1) {
     perror("fork");
   } else if (pid == 0) {
-    if (path.num_dirs == 0) {
+    if (path->num_dirs == 0) {
       print_error();
       exit(EXIT_FAILURE);
     }
 
     char full_path[255];
-    for (int i = 0; i < path.num_dirs; i++) {
-      sprintf(full_path, "%s/%s", path.dirs[i], tokens.tokens[0]);
+    for (int i = 0; i < path->num_dirs; i++) {
+      sprintf(full_path, "%s/%s", path->dirs[i], tokens->tokens[0]);
       if (access(full_path, X_OK) == 0) {
         // Redirect input/output if necessary
-        redirect(redirection);
-        if (execv(full_path, tokens.tokens) == -1) {
+        redirect(&redirection);
+        if (execv(full_path, tokens->tokens) == -1) {
           // print_error();
           exit(EXIT_FAILURE);
         }

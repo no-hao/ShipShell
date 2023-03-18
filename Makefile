@@ -1,5 +1,5 @@
 wish: main.o parser.o external_cmds.o util.o errors.o path_mgmt.o builtin_cmds.o shell_operations.o
-	gcc -o wish main.o parser.o external_cmds.o util.o errors.o path_mgmt.o builtin_cmds.o shell_operations.o
+	gcc -g -o wish main.o parser.o external_cmds.o util.o errors.o path_mgmt.o builtin_cmds.o shell_operations.o
 
 main.o: main.c external_cmds.h parser.h util.h errors.h
 	gcc -c main.c

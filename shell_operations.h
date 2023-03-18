@@ -43,6 +43,6 @@ void redirect_output(const char *filename);
 
 void redirect_append(const char *filename);
 
-void redirect(Redirection redirection);
+void redirect(Redirection *redirection);
 
 #endif

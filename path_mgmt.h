@@ -6,7 +6,7 @@ typedef struct {
   int num_dirs;
 } Path;
 
-extern Path path;
+extern Path *path;
 
 void init_path();
 

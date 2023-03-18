@@ -16,6 +16,7 @@ void add_path_directory(Path *path, const char *new_path);
 void set_path(Path *path, const char *new_path);
 
 void set_path(Path *path, const char *new_path);
-void execute_command(TokenList tokens);
+
+void execute_command(TokenList *tokens);
 
 #endif

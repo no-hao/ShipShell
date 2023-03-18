@@ -4,12 +4,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-Path path;
+Path *path;
 
 void init_path() {
-  path.dirs = (char **)malloc(sizeof(char *));
-  path.dirs[0] = strdup("/bin");
-  path.num_dirs = 1;
+  // Allocate memory for the path variable
+  path = (Path *)malloc(sizeof(Path));
+
+  // Initialize the path to /bin
+  path->dirs = (char **)malloc(sizeof(char *));
+  path->dirs[0] = strdup("/bin");
+  path->num_dirs = 1;
 }
 
 void set_path(Path *path, const char *new_path) {

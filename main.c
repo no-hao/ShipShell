@@ -36,10 +36,10 @@ int main(int argc, char *argv[]) {
     }
 
     tokens = tokenize_input(start, " \t\n");
-    if (is_builtin(tokens)) {
-      execute_builtin(tokens);
+    if (is_builtin(&tokens)) {
+      execute_builtin(&tokens);
     } else {
-      execute_command(tokens);
+      execute_command(&tokens);
     }
 
     // Free tokens
