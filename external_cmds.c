@@ -12,6 +12,12 @@ void execute_command(TokenList *tokens) {
   Redirection redirection = {REDIR_NONE, NULL};
   Parallel parallel = {0, NULL};
 
+  // If the command contains only "&", return without executing anything or
+  // printing an error
+  if (tokens->num_tokens == 1 && strcmp(tokens->tokens[0], "&") == 0) {
+    return;
+  }
+
   // Check for parallel
   if (process_parallel(tokens, &parallel)) {
     tokens->shell_operation.type = PARALLEL;

@@ -119,8 +119,7 @@ bool process_redirection(TokenList *tokens, Redirection *redirection) {
 
 bool process_parallel(TokenList *tokens, Parallel *parallel) {
   if (tokens->num_tokens == 1 && strcmp(tokens->tokens[0], "&") == 0) {
-    tokens->num_tokens =
-        0; // Set the number of tokens to 0 to ignore the command
+    return false;
   }
 
   int cmd_count = 0;
