@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 void execute_command(TokenList tokens) {
-  Redirection redirection = {0};
+  Redirection redirection = {REDIR_NONE, NULL};
 
   // Check for redirection
   for (int i = 0; i < tokens.num_tokens; i++) {
@@ -21,7 +21,8 @@ void execute_command(TokenList tokens) {
         print_error();
         return;
       }
-      redirection.out_file = tokens.tokens[i + 1];
+      redirection.type = OUTPUT;
+      redirection.file = tokens.tokens[i + 1];
       tokens.tokens[i] = NULL;
       tokens.tokens[i + 1] = NULL;
       break;
@@ -31,7 +32,8 @@ void execute_command(TokenList tokens) {
         print_error();
         return;
       }
-      redirection.in_file = tokens.tokens[i + 1];
+      redirection.type = INPUT;
+      redirection.file = tokens.tokens[i + 1];
       tokens.tokens[i] = NULL;
       tokens.tokens[i + 1] = NULL;
       break;
@@ -39,13 +41,15 @@ void execute_command(TokenList tokens) {
       // Handle cases where there are no spaces around the ">" symbol
       char *pos = strstr(tokens.tokens[i], ">");
       *pos = '\0';
-      redirection.out_file = pos + 1;
+      redirection.type = OUTPUT;
+      redirection.file = pos + 1;
       break;
     } else if (strstr(tokens.tokens[i], "<")) {
       // Handle cases where there are no spaces around the "<" symbol
       char *pos = strstr(tokens.tokens[i], "<");
       *pos = '\0';
-      redirection.in_file = pos + 1;
+      redirection.type = INPUT;
+      redirection.file = pos + 1;
       break;
     }
   }
