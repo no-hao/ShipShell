@@ -2,7 +2,8 @@
 #define UTIL_H
 
 #include "shell_operations.h"
+#include <stdio.h>
 
-void print_tokens(TokenList *tokenlist);
+void print_token_list(const char *msg, TokenList *tokens);
 
 #endif

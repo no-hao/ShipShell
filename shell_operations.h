@@ -45,4 +45,8 @@ void redirect_append(const char *filename);
 
 void redirect(Redirection *redirection);
 
+bool is_redirection(TokenList *tokens);
+
+bool process_parallel(TokenList *tokens, Parallel *parallel);
+
 #endif
