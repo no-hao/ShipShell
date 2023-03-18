@@ -122,13 +122,16 @@ bool process_parallel(TokenList *tokens, Parallel *parallel) {
     return false;
   }
 
+  char **tokens_copy = malloc(sizeof(char *) * tokens->num_tokens);
+  memcpy(tokens_copy, tokens->tokens, sizeof(char *) * tokens->num_tokens);
+
   int cmd_count = 0;
   int start_index = 0;
   // print_token_list("Tokens in process_parallel", tokens);
 
   for (int i = 0; i < tokens->num_tokens; i++) {
-    if (strcmp(tokens->tokens[i], "&") == 0) {
-      tokens->tokens[i] = NULL;
+    if (strcmp(tokens_copy[i], "&") == 0) {
+      tokens_copy[i] = NULL;
       // printf("NULL-ing token at index %d\n", i);
 
       if (i - start_index > 0) { // Check if the command is not empty
@@ -138,7 +141,7 @@ bool process_parallel(TokenList *tokens, Parallel *parallel) {
         parallel->cmds = realloc(parallel->cmds, sizeof(TokenList) * cmd_count);
         /* printf("Reallocating cmds to size %zu\n", */
         /*        sizeof(TokenList) * cmd_count); */
-        parallel->cmds[cmd_count - 1].tokens = &tokens->tokens[start_index];
+        parallel->cmds[cmd_count - 1].tokens = &tokens_copy[start_index];
         /* printf("Setting cmd[%d] tokens to tokens[%d]\n", cmd_count - 1, */
         /*        start_index); */
         parallel->cmds[cmd_count - 1].num_tokens = i - start_index;
@@ -156,10 +159,13 @@ bool process_parallel(TokenList *tokens, Parallel *parallel) {
     // printf("Adding cmd #%d\n", cmd_count);
 
     parallel->cmds = realloc(parallel->cmds, sizeof(TokenList) * cmd_count);
-    parallel->cmds[cmd_count - 1].tokens = &tokens->tokens[start_index];
+    parallel->cmds[cmd_count - 1].tokens = &tokens_copy[start_index];
     parallel->cmds[cmd_count - 1].num_tokens = tokens->num_tokens - start_index;
   }
 
   parallel->num_cmds = cmd_count;
+
+  free(tokens_copy);
+
   return cmd_count > 1;
 }
