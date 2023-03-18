@@ -3,6 +3,6 @@
 
 #include "shell_operations.h"
 
-void print_tokens(TokenList tokenlist);
+void print_tokens(TokenList *tokenlist);
 
 #endif

@@ -33,9 +33,9 @@ struct TokenList {
   ShellOperation shell_operation;
 };
 
-TokenList process_redirection(TokenList *tokens, Redirection *redirection);
-
 TokenList process_shell_operations(TokenList tokens);
+
+bool process_redirection(TokenList *tokens, Redirection *redirection);
 
 void redirect_input(const char *filename);
 

@@ -1,4 +1,5 @@
 #include "external_cmds.h"
+#include "errors.h"
 #include "path_mgmt.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -11,47 +12,8 @@ void execute_command(TokenList *tokens) {
   Redirection redirection = {REDIR_NONE, NULL};
 
   // Check for redirection
-  for (int i = 0; i < tokens->num_tokens; i++) {
-    if (strcmp(tokens->tokens[i], ">") == 0) {
-      // Redirect output to file
-      if (i == tokens->num_tokens - 1) {
-        print_error();
-        return;
-      } else if (i + 2 < tokens->num_tokens) {
-        print_error();
-        return;
-      }
-      redirection.type = OUTPUT;
-      redirection.file = tokens->tokens[i + 1];
-      tokens->tokens[i] = NULL;
-      tokens->tokens[i + 1] = NULL;
-      break;
-    } else if (strcmp(tokens->tokens[i], "<") == 0) {
-      // Redirect input from file
-      if (i == tokens->num_tokens - 1) {
-        print_error();
-        return;
-      }
-      redirection.type = INPUT;
-      redirection.file = tokens->tokens[i + 1];
-      tokens->tokens[i] = NULL;
-      tokens->tokens[i + 1] = NULL;
-      break;
-    } else if (strstr(tokens->tokens[i], ">")) {
-      // Handle cases where there are no spaces around the ">" symbol
-      char *pos = strstr(tokens->tokens[i], ">");
-      *pos = '\0';
-      redirection.type = OUTPUT;
-      redirection.file = pos + 1;
-      break;
-    } else if (strstr(tokens->tokens[i], "<")) {
-      // Handle cases where there are no spaces around the "<" symbol
-      char *pos = strstr(tokens->tokens[i], "<");
-      *pos = '\0';
-      redirection.type = INPUT;
-      redirection.file = pos + 1;
-      break;
-    }
+  if (!process_redirection(tokens, &redirection)) {
+    return;
   }
 
   pid_t pid = fork();

@@ -1,11 +1,8 @@
 #ifndef EXECUTE_H
 #define EXECUTE_H
 
-#include "errors.h"
 #include "parser.h"
 #include "path_mgmt.h"
-#include <stdbool.h>
-#include <unistd.h>
 
 extern const int SUCCESS;
 
