@@ -27,16 +27,22 @@ typedef struct {
   } data;
 } ShellOperation;
 
-struct TokenList { // definition of TokenList struct
+struct TokenList {
   char **tokens;
   int num_tokens;
   ShellOperation shell_operation;
 };
 
-void redirect(Redirection redirection);
-
 TokenList process_redirection(TokenList *tokens, Redirection *redirection);
 
 TokenList process_shell_operations(TokenList tokens);
+
+void redirect_input(const char *filename);
+
+void redirect_output(const char *filename);
+
+void redirect_append(const char *filename);
+
+void redirect(Redirection redirection);
 
 #endif
