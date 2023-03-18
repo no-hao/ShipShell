@@ -88,7 +88,7 @@ TokenList tokenize_input(const char *input, const char *delimiter) {
   TokenList result = {tokens, num_tokens};
 
   // Print out the tokens
-  // print_tokens(result);
+  // print_token_list("tokens in tokenlist", &result);
 
   free(input_copy);
 
