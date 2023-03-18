@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "redirection.h"
+#include "shell_operators.h"
 
 typedef struct TokenList {
   char **tokens;

@@ -1,5 +1,5 @@
-#ifndef REDIRECTION_H
-#define REDIRECTION_H
+#ifndef SHELL_OPERATORS_H
+#define SHELL_OPERATORS_H
 
 typedef struct TokenList TokenList;
 
@@ -14,4 +14,4 @@ void redirect(Redirection redirection);
 
 TokenList process_redirection(TokenList *tokens, Redirection *redirection);
 
-#endif // !REDIRECTION_H
+#endif

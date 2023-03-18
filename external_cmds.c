@@ -7,9 +7,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-const int ERROR = 1;
-// const int SUCCESS = 0;
-
 void execute_command(TokenList tokens) {
   Redirection redirection = {0};
 

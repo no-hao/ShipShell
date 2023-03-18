@@ -1,4 +1,4 @@
-#include "redirection.h"
+#include "shell_operators.h"
 #include "errors.h"
 #include <stdio.h>
 #include <stdlib.h>

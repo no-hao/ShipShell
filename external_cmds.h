@@ -7,7 +7,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-extern const int ERROR;
 extern const int SUCCESS;
 
 void init_path();
