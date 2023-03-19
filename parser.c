@@ -70,18 +70,35 @@ TokenList tokenize_input(const char *input, const char *delimiter) {
   }
 
   char *input_ptr = input_copy;
-  // Split input into tokens using strsep
-  while ((token = strsep(&input_ptr, delimiter)) != NULL) {
+  // Split input into tokens using strtok
+  token = strtok(input_ptr, delimiter);
+  while (token != NULL) {
     strip_trailing_whitespace(token);
-    if (is_empty_token(token)) {
-      continue;
+
+    if (!is_empty_token(token)) {
+      // Expand tokens buffer if needed
+      if (num_tokens >= max_tokens) {
+        max_tokens += TOKEN_BUF_SIZE;
+        tokens = realloc_token_buffer(tokens, max_tokens);
+      }
+
+      char *ampersand_ptr = strchr(token, '&');
+      while (ampersand_ptr != NULL) {
+        if (ampersand_ptr > token) {
+          tokens[num_tokens++] = strndup(token, ampersand_ptr - token);
+        }
+        tokens[num_tokens++] = strndup(ampersand_ptr, 1);
+
+        token = ampersand_ptr + 1;
+        ampersand_ptr = strchr(token, '&');
+      }
+
+      if (*token != '\0') {
+        tokens[num_tokens++] = strdup(token);
+      }
     }
-    // Expand tokens buffer if needed
-    if (num_tokens >= max_tokens) {
-      max_tokens += TOKEN_BUF_SIZE;
-      tokens = realloc_token_buffer(tokens, max_tokens);
-    }
-    tokens[num_tokens++] = strdup(token);
+
+    token = strtok(NULL, delimiter);
   }
 
   // Create TokenList struct
