@@ -55,4 +55,7 @@ bool is_parallel(TokenList *tokens);
 
 bool process_parallel(TokenList *tokens, Parallel *parallel);
 
+int extract_command(TokenList *tokens, Parallel *parallel, int start_index,
+                    int end_index, int cmd_count);
+
 #endif

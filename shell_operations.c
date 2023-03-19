@@ -157,38 +157,34 @@ bool process_parallel(TokenList *tokens, Parallel *parallel) {
     }
 
     if (strcmp(tokens->tokens[i], "&") == 0) {
-      if (i - start_index > 0) {
-        cmd_count++;
-
-        parallel->cmds = realloc(parallel->cmds, sizeof(TokenList) * cmd_count);
-        parallel->cmds[cmd_count - 1].tokens =
-            malloc((i - start_index + 1) * sizeof(char *));
-        memcpy(parallel->cmds[cmd_count - 1].tokens,
-               &tokens->tokens[start_index],
-               (i - start_index) * sizeof(char *));
-        parallel->cmds[cmd_count - 1].tokens[i - start_index] = NULL;
-        parallel->cmds[cmd_count - 1].num_tokens = i - start_index;
-      }
-
+      cmd_count = extract_command(tokens, parallel, start_index, i, cmd_count);
       start_index = i + 1;
     }
   }
 
   if (start_index != tokens->num_tokens &&
       tokens->num_tokens - start_index > 0) {
-    cmd_count++;
-
-    parallel->cmds = realloc(parallel->cmds, sizeof(TokenList) * cmd_count);
-    parallel->cmds[cmd_count - 1].tokens =
-        malloc((tokens->num_tokens - start_index + 1) * sizeof(char *));
-    memcpy(parallel->cmds[cmd_count - 1].tokens, &tokens->tokens[start_index],
-           (tokens->num_tokens - start_index) * sizeof(char *));
-    parallel->cmds[cmd_count - 1].tokens[tokens->num_tokens - start_index] =
-        NULL;
-    parallel->cmds[cmd_count - 1].num_tokens = tokens->num_tokens - start_index;
+    cmd_count = extract_command(tokens, parallel, start_index,
+                                tokens->num_tokens, cmd_count);
   }
 
   parallel->num_cmds = cmd_count;
 
   return cmd_count > 1;
+}
+
+int extract_command(TokenList *tokens, Parallel *parallel, int start_index,
+                    int end_index, int cmd_count) {
+  int cmd_length = end_index - start_index;
+  if (cmd_length > 0) {
+    cmd_count++;
+    parallel->cmds = realloc(parallel->cmds, sizeof(TokenList) * cmd_count);
+    parallel->cmds[cmd_count - 1].tokens =
+        malloc((cmd_length + 1) * sizeof(char *));
+    memcpy(parallel->cmds[cmd_count - 1].tokens, &tokens->tokens[start_index],
+           cmd_length * sizeof(char *));
+    parallel->cmds[cmd_count - 1].tokens[cmd_length] = NULL;
+    parallel->cmds[cmd_count - 1].num_tokens = cmd_length;
+  }
+  return cmd_count;
 }
