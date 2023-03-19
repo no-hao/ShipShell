@@ -15,6 +15,6 @@ void execute_parallel_commands(Parallel *parallel);
 
 void execute_single_command(TokenList *tokens, Redirection *redirection);
 
-void child_process_exec(TokenList *tokens, Redirection *redirection);
+void exec_child_process(TokenList *tokens, Redirection *redirection);
 
 #endif

@@ -33,7 +33,11 @@ struct TokenList {
   ShellOperation shell_operation;
 };
 
-TokenList process_shell_operations(TokenList tokens);
+static bool process_output_redirection(TokenList *tokens,
+                                       Redirection *redirection, int i);
+
+static bool process_input_redirection(TokenList *tokens,
+                                      Redirection *redirection, int i);
 
 bool process_redirection(TokenList *tokens, Redirection *redirection);
 
@@ -46,6 +50,8 @@ void redirect_append(const char *filename);
 void redirect(Redirection *redirection);
 
 bool is_redirection(TokenList *tokens);
+
+bool is_parallel(TokenList *tokens);
 
 bool process_parallel(TokenList *tokens, Parallel *parallel);
 
