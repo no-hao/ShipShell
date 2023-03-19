@@ -2,18 +2,19 @@
 #define EXECUTE_H
 
 #include "parser.h"
-#include "path_mgmt.h"
+#include <sys/types.h>
 
 extern const int SUCCESS;
 
-void init_path();
-
-void add_path_directory(Path *path, const char *new_path);
-
-void set_path(Path *path, const char *new_path);
-
-void set_path(Path *path, const char *new_path);
-
 void execute_command(TokenList *tokens);
+
+pid_t create_child_process(void (*child_func)(TokenList *, Redirection *),
+                           TokenList *tokens, Redirection *redirection);
+
+void execute_parallel_commands(Parallel *parallel);
+
+void execute_single_command(TokenList *tokens, Redirection *redirection);
+
+void child_process_exec(TokenList *tokens, Redirection *redirection);
 
 #endif

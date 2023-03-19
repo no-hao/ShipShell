@@ -2,6 +2,7 @@
 #include "errors.h"
 #include "external_cmds.h"
 #include "parser.h"
+#include "path_mgmt.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -6,6 +6,10 @@
 #include <string.h>
 #include <unistd.h>
 
+/**********************************/
+/********** REDIRECTION **********/
+/**********************************/
+
 bool is_redirection(TokenList *tokens) {
   for (int i = 0; i < tokens->num_tokens; i++) {
     if (strcmp(tokens->tokens[i], ">") == 0 ||
@@ -115,6 +119,20 @@ bool process_redirection(TokenList *tokens, Redirection *redirection) {
     }
   }
   return true;
+}
+
+/**********************************/
+/************ PARALLEL ************/
+/**********************************/
+
+bool is_background(TokenList *tokens) {
+  for (int i = 0; i < tokens->num_tokens; i++) {
+    if (strcmp(tokens->tokens[i], "&") == 0) {
+      tokens->tokens[i] = NULL;
+      return true;
+    }
+  }
+  return false;
 }
 
 bool process_parallel(TokenList *tokens, Parallel *parallel) {
