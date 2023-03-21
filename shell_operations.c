@@ -9,7 +9,7 @@
 /********** REDIRECTION **********/
 /**********************************/
 
-bool is_redirection(TokenList *tokens) {
+bool is_redirection(TokenChain *tokens) {
   for (int i = 0; i < tokens->num_tokens; i++) {
     if (strcmp(tokens->tokens[i], ">") == 0 ||
         strcmp(tokens->tokens[i], "<") == 0 ||
@@ -69,7 +69,7 @@ void redirect(Redirection *redirection) {
   }
 }
 
-static bool process_input_redirection(TokenList *tokens, int i) {
+static bool process_input_redirection(TokenChain *tokens, int i) {
   if (i == tokens->num_tokens - 1) {
     print_error();
     return false;
@@ -90,7 +90,7 @@ static bool process_input_redirection(TokenList *tokens, int i) {
   return true;
 }
 
-static bool process_output_redirection(TokenList *tokens, int i) {
+static bool process_output_redirection(TokenChain *tokens, int i) {
   if (i == tokens->num_tokens - 1) {
     print_error();
     return false;
@@ -111,7 +111,7 @@ static bool process_output_redirection(TokenList *tokens, int i) {
   return true;
 }
 
-bool process_redirection(TokenList *tokens) {
+bool process_redirection(TokenChain *tokens) {
   for (int i = 0; i < tokens->num_tokens; i++) {
     if (strcmp(tokens->tokens[i], ">") == 0) {
       return process_output_redirection(tokens, i);
@@ -127,7 +127,7 @@ bool process_redirection(TokenList *tokens) {
 /************ PARALLEL ************/
 /**********************************/
 
-bool is_parallel(TokenList *tokens) {
+bool is_parallel(TokenChain *tokens) {
   for (int i = 0; i < tokens->num_tokens; i++) {
     if (strcmp(tokens->tokens[i], "&") == 0) {
       tokens->tokens[i] = NULL;
@@ -137,7 +137,7 @@ bool is_parallel(TokenList *tokens) {
   return false;
 }
 
-bool process_parallel(TokenList *tokens) {
+bool process_parallel(TokenChain *tokens) {
   Parallel *parallel = &tokens->shell_operation.data.parallel;
   int cmd_count = 0;
   int start_index = 0;
@@ -167,12 +167,12 @@ bool process_parallel(TokenList *tokens) {
   return cmd_count > 1;
 }
 
-int extract_command(TokenList *tokens, Parallel *parallel, int start_index,
+int extract_command(TokenChain *tokens, Parallel *parallel, int start_index,
                     int end_index, int cmd_count) {
   int cmd_length = end_index - start_index;
   if (cmd_length > 0) {
     cmd_count++;
-    parallel->cmds = realloc(parallel->cmds, sizeof(TokenList) * cmd_count);
+    parallel->cmds = realloc(parallel->cmds, sizeof(TokenChain) * cmd_count);
     parallel->cmds[cmd_count - 1].tokens =
         malloc((cmd_length + 1) * sizeof(char *));
     memcpy(parallel->cmds[cmd_count - 1].tokens, &tokens->tokens[start_index],

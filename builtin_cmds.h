@@ -4,14 +4,14 @@
 #include "util.h"
 #include <stdbool.h>
 
-bool is_builtin(TokenList *tokens);
+bool is_builtin(TokenChain *tokens);
 
-void execute_exit(TokenList *tokens);
+void execute_exit(TokenChain *tokens);
 
-void execute_cd(TokenList *tokens);
+void execute_cd(TokenChain *tokens);
 
-void execute_path(TokenList *tokens);
+void execute_path(TokenChain *tokens);
 
-void execute_builtin(TokenList *tokens);
+void execute_builtin(TokenChain *tokens);
 
 #endif

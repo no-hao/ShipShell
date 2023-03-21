@@ -4,6 +4,6 @@
 #include "shell_operations.h"
 #include <stdio.h>
 
-void print_token_list(const char *msg, TokenList *tokens);
+void print_token_list(const char *msg, TokenChain *tokens);
 
 #endif

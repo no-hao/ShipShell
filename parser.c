@@ -54,7 +54,7 @@ static char **realloc_token_buffer(char **tokens, int max_tokens) {
   return tokens;
 }
 
-TokenList tokenize_input(const char *input, const char *delimiter) {
+TokenChain tokenize_input(const char *input, const char *delimiter) {
   char **tokens = NULL;
   char *token;
   int num_tokens = 0;
@@ -101,11 +101,11 @@ TokenList tokenize_input(const char *input, const char *delimiter) {
     token = strtok(NULL, delimiter);
   }
 
-  // Create TokenList struct
-  TokenList result = {tokens, num_tokens};
+  // Create TokenChain struct
+  TokenChain result = {tokens, num_tokens};
 
   // Print out the tokens
-  // print_token_list("tokens in tokenlist", &result);
+  // print_token_list("tokens in TokenChain", &result);
 
   free(input_copy);
 

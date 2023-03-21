@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-typedef struct TokenList TokenList; // forward declaration of TokenList struct
+typedef struct TokenChain TokenChain; // forward declaration of TokenChain struct
 
 typedef enum { OP_NONE, PARALLEL, REDIRECTION } OperationType;
 
@@ -16,7 +16,7 @@ typedef struct {
 
 typedef struct {
   int num_cmds;
-  TokenList *cmds;
+  TokenChain *cmds;
 } Parallel;
 
 typedef struct {
@@ -27,17 +27,17 @@ typedef struct {
   } data;
 } ShellOperation;
 
-struct TokenList {
+struct TokenChain {
   char **tokens;
   int num_tokens;
   ShellOperation shell_operation;
 };
 
-static bool process_output_redirection(TokenList *tokens, int i);
+static bool process_output_redirection(TokenChain *tokens, int i);
 
-static bool process_input_redirection(TokenList *tokens, int i);
+static bool process_input_redirection(TokenChain *tokens, int i);
 
-bool process_redirection(TokenList *tokens);
+bool process_redirection(TokenChain *tokens);
 
 void redirect_input(const char *filename);
 
@@ -47,13 +47,13 @@ void redirect_append(const char *filename);
 
 void redirect(Redirection *redirection);
 
-bool is_redirection(TokenList *tokens);
+bool is_redirection(TokenChain *tokens);
 
-bool is_parallel(TokenList *tokens);
+bool is_parallel(TokenChain *tokens);
 
-bool process_parallel(TokenList *tokens);
+bool process_parallel(TokenChain *tokens);
 
-int extract_command(TokenList *tokens, Parallel *parallel, int start_index,
+int extract_command(TokenChain *tokens, Parallel *parallel, int start_index,
                     int end_index, int cmd_count);
 
 #endif

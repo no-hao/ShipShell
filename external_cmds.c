@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
-pid_t create_child_process(void (*child_func)(TokenList *), TokenList *tokens) {
+pid_t create_child_process(void (*child_func)(TokenChain *), TokenChain *tokens) {
   pid_t pid = fork();
   if (pid == -1) {
     perror("fork");
@@ -17,7 +17,7 @@ pid_t create_child_process(void (*child_func)(TokenList *), TokenList *tokens) {
   return pid;
 }
 
-void exec_child_process(TokenList *tokens) {
+void exec_child_process(TokenChain *tokens) {
   if (path->num_dirs == 0) {
     print_error();
     exit(EXIT_FAILURE);
@@ -39,7 +39,7 @@ void exec_child_process(TokenList *tokens) {
   exit(EXIT_FAILURE);
 }
 
-void execute_command(TokenList *tokens) {
+void execute_command(TokenChain *tokens) {
   if (tokens->num_tokens == 1 && strcmp(tokens->tokens[0], "&") == 0) {
     return;
   }
@@ -59,7 +59,7 @@ void execute_command(TokenList *tokens) {
   }
 }
 
-void execute_parallel_commands(TokenList *tokens) {
+void execute_parallel_commands(TokenChain *tokens) {
   Parallel *parallel = &tokens->shell_operation.data.parallel;
   pid_t *pids = malloc(sizeof(pid_t) * parallel->num_cmds);
 
@@ -76,7 +76,7 @@ void execute_parallel_commands(TokenList *tokens) {
   free(pids);
 }
 
-void execute_single_command(TokenList *tokens) {
+void execute_single_command(TokenChain *tokens) {
   pid_t pid = create_child_process(&exec_child_process, tokens);
 
   int status;

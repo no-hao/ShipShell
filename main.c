@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
   while (file == stdin ? printf("wish> ") : 0,
          getline(&input, &input_size, file) != -1) {
     // Initialize tokens to empty list
-    TokenList tokens = {.tokens = NULL, .num_tokens = 0};
+    TokenChain tokens = {.tokens = NULL, .num_tokens = 0};
 
     // Ignore leading whitespace
     char *start = input;

@@ -14,6 +14,6 @@ static char **allocate_token_buffer(int max_tokens);
 
 static char **realloc_token_buffer(char **tokens, int max_tokens);
 
-TokenList tokenize_input(const char *input, const char *delimiter);
+TokenChain tokenize_input(const char *input, const char *delimiter);
 
 #endif

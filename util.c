@@ -1,7 +1,7 @@
 #include "parser.h"
 #include <stdio.h>
 
-void print_token_list(const char *msg, TokenList *tokens) {
+void print_token_list(const char *msg, TokenChain *tokens) {
   printf("%s:\n", msg);
   printf("format-> [index][TYPE][value]\n");
   for (int i = 0; i < tokens->num_tokens; i++) {
