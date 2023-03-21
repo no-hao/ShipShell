@@ -7,10 +7,15 @@
 
 const int SUCCESS = 0;
 
+bool is_exit_cmd(const char *cmd) { return strcmp(cmd, "exit") == 0; }
+
+bool is_cd_cmd(const char *cmd) { return strcmp(cmd, "cd") == 0; }
+
+bool is_path_cmd(const char *cmd) { return strcmp(cmd, "path") == 0; }
+
 bool is_builtin(TokenChain *tokens) {
-  return (strcmp(tokens->tokens[0], "path") == 0 ||
-          strcmp(tokens->tokens[0], "cd") == 0 ||
-          strcmp(tokens->tokens[0], "exit") == 0);
+  const char *cmd = tokens->tokens[0];
+  return is_exit_cmd(cmd) || is_cd_cmd(cmd) || is_path_cmd(cmd);
 }
 
 void execute_exit(TokenChain *tokens) {
@@ -44,11 +49,13 @@ void execute_path(TokenChain *tokens) {
 }
 
 void execute_builtin(TokenChain *tokens) {
-  if (strcmp(tokens->tokens[0], "exit") == 0) {
+  const char *cmd = tokens->tokens[0];
+
+  if (is_exit_cmd(cmd)) {
     execute_exit(tokens);
-  } else if (strcmp(tokens->tokens[0], "cd") == 0) {
+  } else if (is_cd_cmd(cmd)) {
     execute_cd(tokens);
-  } else if (strcmp(tokens->tokens[0], "path") == 0) {
+  } else if (is_path_cmd(cmd)) {
     execute_path(tokens);
   } else {
     print_error();
