@@ -7,8 +7,6 @@
 
 #define TOKEN_BUF_SIZE 16
 
-// Use 'static' for internal functions that should not be exposed to other
-// source files
 static void strip_trailing_whitespace(char *s) {
   int len = strlen(s);
   while (len > 0 && isspace(s[len - 1])) {
@@ -17,7 +15,6 @@ static void strip_trailing_whitespace(char *s) {
 }
 
 static bool is_empty_token(const char *token) {
-  // Check if the token is only composed of whitespace characters
   for (const char *c = token; *c != '\0'; ++c) {
     if (!isspace(*c)) {
       return false;
@@ -36,7 +33,6 @@ static char *create_input_copy(const char *input) {
 }
 
 static char **allocate_token_buffer(int max_tokens) {
-  // Allocate tokens buffer
   char **tokens = calloc(max_tokens, sizeof(char *));
   if (tokens == NULL) {
     perror("Error: failed to allocate memory for input tokens");
@@ -54,54 +50,53 @@ static char **realloc_token_buffer(char **tokens, int max_tokens) {
   return tokens;
 }
 
+static void process_special_chars(const char *token, char ***tokens,
+                                  int *num_tokens) {
+  char *special_char_ptr = strpbrk(token, "&><");
+  while (special_char_ptr != NULL) {
+    if (special_char_ptr > token) {
+      (*tokens)[(*num_tokens)++] = strndup(token, special_char_ptr - token);
+    }
+    (*tokens)[(*num_tokens)++] = strndup(special_char_ptr, 1);
+
+    token = special_char_ptr + 1;
+    special_char_ptr = strpbrk(token, "&><");
+  }
+
+  if (*token != '\0') {
+    (*tokens)[(*num_tokens)++] = strdup(token);
+  }
+}
+
+static void process_token(const char *token, char ***tokens, int *num_tokens,
+                          int *max_tokens) {
+  if (is_empty_token(token))
+    return;
+
+  if (*num_tokens >= *max_tokens) {
+    *max_tokens += TOKEN_BUF_SIZE;
+    *tokens = realloc_token_buffer(*tokens, *max_tokens);
+  }
+
+  process_special_chars(token, tokens, num_tokens);
+}
+
 TokenChain tokenize_input(const char *input, const char *delimiter) {
   char **tokens = NULL;
   char *token;
   int num_tokens = 0;
   int max_tokens = TOKEN_BUF_SIZE;
 
-  // Create a modifiable copy of the input to avoid altering the original string
   char *input_copy = create_input_copy(input);
   tokens = allocate_token_buffer(max_tokens);
+  delimiter = delimiter == NULL ? " \t\n" : delimiter;
 
-  // Set default delimiter if none provided
-  if (delimiter == NULL) {
-    delimiter = " \t\n";
-  }
-
-  char *input_ptr = input_copy;
-  // Split input into tokens using strtok
-  token = strtok(input_ptr, delimiter);
-  while (token != NULL) {
+  for (token = strtok(input_copy, delimiter); token != NULL;
+       token = strtok(NULL, delimiter)) {
     strip_trailing_whitespace(token);
-
-    if (!is_empty_token(token)) {
-      // Expand tokens buffer if needed
-      if (num_tokens >= max_tokens) {
-        max_tokens += TOKEN_BUF_SIZE;
-        tokens = realloc_token_buffer(tokens, max_tokens);
-      }
-
-      char *special_char_ptr = strpbrk(token, "&><");
-      while (special_char_ptr != NULL) {
-        if (special_char_ptr > token) {
-          tokens[num_tokens++] = strndup(token, special_char_ptr - token);
-        }
-        tokens[num_tokens++] = strndup(special_char_ptr, 1);
-
-        token = special_char_ptr + 1;
-        special_char_ptr = strpbrk(token, "&><");
-      }
-
-      if (*token != '\0') {
-        tokens[num_tokens++] = strdup(token);
-      }
-    }
-
-    token = strtok(NULL, delimiter);
+    process_token(token, &tokens, &num_tokens, &max_tokens);
   }
 
-  // Create TokenChain struct
   TokenChain result = {tokens, num_tokens};
 
   // Print out the tokens
