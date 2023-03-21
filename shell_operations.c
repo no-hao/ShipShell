@@ -69,15 +69,35 @@ void redirect(Redirection *redirection) {
   }
 }
 
-// Helper function to process output redirection
-static bool process_output_redirection(TokenList *tokens,
-                                       Redirection *redirection, int i) {
+static bool process_input_redirection(TokenList *tokens, int i) {
   if (i == tokens->num_tokens - 1) {
     print_error();
     return false;
   }
-  redirection->type = OUTPUT;
-  redirection->file = tokens->tokens[i + 1];
+  tokens->shell_operation.type = REDIRECTION;
+  tokens->shell_operation.data.redirection.type = INPUT;
+  tokens->shell_operation.data.redirection.file = tokens->tokens[i + 1];
+  tokens->tokens[i] = NULL;
+  tokens->tokens[i + 1] = NULL;
+
+  // Check if there are any non-NULL tokens after the input file
+  for (int j = i + 2; j < tokens->num_tokens; j++) {
+    if (tokens->tokens[j] != NULL) {
+      print_error();
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool process_output_redirection(TokenList *tokens, int i) {
+  if (i == tokens->num_tokens - 1) {
+    print_error();
+    return false;
+  }
+  tokens->shell_operation.type = REDIRECTION;
+  tokens->shell_operation.data.redirection.type = OUTPUT;
+  tokens->shell_operation.data.redirection.file = tokens->tokens[i + 1];
   tokens->tokens[i] = NULL;
   tokens->tokens[i + 1] = NULL;
 
@@ -91,41 +111,14 @@ static bool process_output_redirection(TokenList *tokens,
   return true;
 }
 
-// Helper function to process input redirection
-static bool process_input_redirection(TokenList *tokens,
-                                      Redirection *redirection, int i) {
-  if (i == tokens->num_tokens - 1) {
-    print_error();
-    return false;
-  }
-  redirection->type = INPUT;
-  redirection->file = tokens->tokens[i + 1];
-  tokens->tokens[i] = NULL;
-  tokens->tokens[i + 1] = NULL;
-  return true;
-}
-
-bool process_redirection(TokenList *tokens, Redirection *redirection) {
+bool process_redirection(TokenList *tokens) {
   for (int i = 0; i < tokens->num_tokens; i++) {
     if (strcmp(tokens->tokens[i], ">") == 0) {
-      return process_output_redirection(tokens, redirection, i);
+      return process_output_redirection(tokens, i);
     } else if (strcmp(tokens->tokens[i], "<") == 0) {
-      return process_input_redirection(tokens, redirection, i);
-    } else if (strstr(tokens->tokens[i], ">")) {
-      // Handle cases where there are no spaces around the ">" symbol
-      char *pos = strstr(tokens->tokens[i], ">");
-      *pos = '\0';
-      redirection->type = OUTPUT;
-      redirection->file = pos + 1;
-      return true;
-    } else if (strstr(tokens->tokens[i], "<")) {
-      // Handle cases where there are no spaces around the "<" symbol
-      char *pos = strstr(tokens->tokens[i], "<");
-      *pos = '\0';
-      redirection->type = INPUT;
-      redirection->file = pos + 1;
-      return true;
+      return process_input_redirection(tokens, i);
     }
+    // ... (rest of the function)
   }
   return true;
 }
@@ -144,7 +137,8 @@ bool is_parallel(TokenList *tokens) {
   return false;
 }
 
-bool process_parallel(TokenList *tokens, Parallel *parallel) {
+bool process_parallel(TokenList *tokens) {
+  Parallel *parallel = &tokens->shell_operation.data.parallel;
   int cmd_count = 0;
   int start_index = 0;
 

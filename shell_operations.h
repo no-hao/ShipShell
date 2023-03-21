@@ -33,13 +33,11 @@ struct TokenList {
   ShellOperation shell_operation;
 };
 
-static bool process_output_redirection(TokenList *tokens,
-                                       Redirection *redirection, int i);
+static bool process_output_redirection(TokenList *tokens, int i);
 
-static bool process_input_redirection(TokenList *tokens,
-                                      Redirection *redirection, int i);
+static bool process_input_redirection(TokenList *tokens, int i);
 
-bool process_redirection(TokenList *tokens, Redirection *redirection);
+bool process_redirection(TokenList *tokens);
 
 void redirect_input(const char *filename);
 
@@ -53,7 +51,7 @@ bool is_redirection(TokenList *tokens);
 
 bool is_parallel(TokenList *tokens);
 
-bool process_parallel(TokenList *tokens, Parallel *parallel);
+bool process_parallel(TokenList *tokens);
 
 int extract_command(TokenList *tokens, Parallel *parallel, int start_index,
                     int end_index, int cmd_count);

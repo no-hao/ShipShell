@@ -82,15 +82,15 @@ TokenList tokenize_input(const char *input, const char *delimiter) {
         tokens = realloc_token_buffer(tokens, max_tokens);
       }
 
-      char *ampersand_ptr = strchr(token, '&');
-      while (ampersand_ptr != NULL) {
-        if (ampersand_ptr > token) {
-          tokens[num_tokens++] = strndup(token, ampersand_ptr - token);
+      char *special_char_ptr = strpbrk(token, "&><");
+      while (special_char_ptr != NULL) {
+        if (special_char_ptr > token) {
+          tokens[num_tokens++] = strndup(token, special_char_ptr - token);
         }
-        tokens[num_tokens++] = strndup(ampersand_ptr, 1);
+        tokens[num_tokens++] = strndup(special_char_ptr, 1);
 
-        token = ampersand_ptr + 1;
-        ampersand_ptr = strchr(token, '&');
+        token = special_char_ptr + 1;
+        special_char_ptr = strpbrk(token, "&><");
       }
 
       if (*token != '\0') {
