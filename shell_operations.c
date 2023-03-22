@@ -94,11 +94,13 @@ static bool process_input_redirection(TokenChain *tokens, int i) {
   return true;
 }
 
-bool process_redirection(TokenChain *tokens) {
-  // printf("DEBUG: Inside process_redirection\n");
+bool is_operator(const char *token) {
+  return strcmp(token, "&") == 0 || strcmp(token, ">") == 0 ||
+         strcmp(token, ">>") == 0 || strcmp(token, "<") == 0;
+}
 
+bool process_redirection(TokenChain *tokens) {
   if (!tokens) {
-    // printf("DEBUG: tokens is null\n");
     return false;
   }
 
@@ -110,8 +112,18 @@ bool process_redirection(TokenChain *tokens) {
     }
 
     if (strcmp(tokens->tokens[i], ">") == 0) {
+      if (i == tokens->num_tokens - 1 || tokens->tokens[i + 1] == NULL) {
+        print_error();
+        return false;
+      }
+
+      if (i < tokens->num_tokens - 2 && tokens->tokens[i + 2] != NULL &&
+          !is_operator(tokens->tokens[i + 2])) {
+        print_error();
+        return false;
+      }
+
       if (!process_output_redirection(tokens, i)) {
-        // printf("DEBUG: Failed to process output redirection\n");
         return false;
       }
     }
@@ -125,10 +137,10 @@ bool process_redirection(TokenChain *tokens) {
 bool process_output_redirection(TokenChain *tokens, int index) {
   // printf("DEBUG: Inside process_output_redirection\n");
 
-  if (!tokens) {
-    // printf("DEBUG: tokens is null\n");
-    return false;
-  }
+  /* if (!tokens) { */
+  /*   // printf("DEBUG: tokens is null\n"); */
+  /*   return false; */
+  /* } */
 
   if (!tokens->tokens) {
     // printf("DEBUG: tokens->tokens is null\n");

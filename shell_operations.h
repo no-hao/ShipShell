@@ -61,4 +61,6 @@ void separate_parallel_commands(TokenChain *tokens, Parallel *parallel);
 
 void free_parallel_commands(Parallel *parallel);
 
+bool is_operator(const char *token);
+
 #endif

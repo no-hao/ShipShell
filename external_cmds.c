@@ -44,12 +44,12 @@ void execute_command(TokenChain *tokens) {
   if (tokens->num_tokens == 1 && strcmp(tokens->tokens[0], "&") == 0) {
     return;
   }
+
+  // First, process redirections.
   // Then, process parallel commands.
   if (process_parallel(tokens)) {
     tokens->shell_operation.type = PARALLEL;
   }
-
-  // First, process redirections.
   if (!process_redirection(tokens)) {
     return;
   }
