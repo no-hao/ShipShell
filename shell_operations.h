@@ -3,7 +3,8 @@
 
 #include <stdbool.h>
 
-typedef struct TokenChain TokenChain; // forward declaration of TokenChain struct
+typedef struct TokenChain
+    TokenChain; // forward declaration of TokenChain struct
 
 typedef enum { OP_NONE, PARALLEL, REDIRECTION } OperationType;
 
@@ -33,6 +34,8 @@ struct TokenChain {
   ShellOperation shell_operation;
 };
 
+bool process_parallel(TokenChain *tokens);
+
 static bool process_output_redirection(TokenChain *tokens, int i);
 
 static bool process_input_redirection(TokenChain *tokens, int i);
@@ -51,9 +54,11 @@ bool is_redirection(TokenChain *tokens);
 
 bool is_parallel(TokenChain *tokens);
 
-bool process_parallel(TokenChain *tokens);
-
 int extract_command(TokenChain *tokens, Parallel *parallel, int start_index,
                     int end_index, int cmd_count);
+
+void separate_parallel_commands(TokenChain *tokens, Parallel *parallel);
+
+void free_parallel_commands(Parallel *parallel);
 
 #endif

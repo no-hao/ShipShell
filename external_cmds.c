@@ -5,7 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
-pid_t create_child_process(void (*child_func)(TokenChain *), TokenChain *tokens) {
+pid_t create_child_process(void (*child_func)(TokenChain *),
+                           TokenChain *tokens) {
   pid_t pid = fork();
   if (pid == -1) {
     perror("fork");
@@ -43,11 +44,12 @@ void execute_command(TokenChain *tokens) {
   if (tokens->num_tokens == 1 && strcmp(tokens->tokens[0], "&") == 0) {
     return;
   }
-
+  // Then, process parallel commands.
   if (process_parallel(tokens)) {
     tokens->shell_operation.type = PARALLEL;
   }
 
+  // First, process redirections.
   if (!process_redirection(tokens)) {
     return;
   }
