@@ -67,7 +67,10 @@ void execute_parallel_commands(TokenChain *tokens) {
 
   for (int i = 0; i < parallel->num_cmds; i++) {
     pids[i] = create_child_process(&execute_single_command, &parallel->cmds[i]);
+  }
 
+  // Wait for all child processes to complete
+  for (int i = 0; i < parallel->num_cmds; i++) {
     int status;
     if (waitpid(pids[i], &status, 0) == -1) {
       perror("waitpid");

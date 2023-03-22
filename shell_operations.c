@@ -9,17 +9,6 @@
 /********** REDIRECTION **********/
 /**********************************/
 
-bool is_redirection(TokenChain *tokens) {
-  for (int i = 0; i < tokens->num_tokens; i++) {
-    if (strcmp(tokens->tokens[i], ">") == 0 ||
-        strcmp(tokens->tokens[i], "<") == 0 ||
-        strcmp(tokens->tokens[i], ">>") == 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
 void redirect_input(const char *filename) {
   // printf("DEBUG: Inside redirect_input\n");
   FILE *in_file = fopen(filename, "r");
@@ -74,29 +63,39 @@ void redirect(Redirection *redirection) {
 }
 
 static bool process_input_redirection(TokenChain *tokens, int i) {
-  if (i == tokens->num_tokens - 1) {
-    print_error();
-    return false;
-  }
+
   tokens->shell_operation.type = REDIRECTION;
   tokens->shell_operation.data.redirection.type = INPUT;
   tokens->shell_operation.data.redirection.file = tokens->tokens[i + 1];
   tokens->tokens[i] = NULL;
   tokens->tokens[i + 1] = NULL;
 
-  // Check if there are any non-NULL tokens after the input file
-  for (int j = i + 2; j < tokens->num_tokens; j++) {
-    if (tokens->tokens[j] != NULL) {
-      print_error();
-      return false;
-    }
-  }
   return true;
 }
 
 bool is_operator(const char *token) {
   return strcmp(token, "&") == 0 || strcmp(token, ">") == 0 ||
          strcmp(token, ">>") == 0 || strcmp(token, "<") == 0;
+}
+
+bool is_valid_redirection(TokenChain *tokens, int i) {
+  if (i < 1 || i >= tokens->num_tokens - 1) {
+    return false;
+  }
+
+  // Check if the previous token is an executable
+  if (access(tokens->tokens[i - 1], X_OK) != 0) {
+    return false;
+  }
+
+  // Check if the next token is a valid file or path
+  // You can add more conditions here, if necessary
+  if (tokens->tokens[i + 1] == NULL ||
+      strcmp(tokens->tokens[i + 1], "&") == -1) {
+    return false;
+  }
+
+  return true;
 }
 
 bool process_redirection(TokenChain *tokens) {
@@ -112,13 +111,7 @@ bool process_redirection(TokenChain *tokens) {
     }
 
     if (strcmp(tokens->tokens[i], ">") == 0) {
-      if (i == tokens->num_tokens - 1 || tokens->tokens[i + 1] == NULL) {
-        print_error();
-        return false;
-      }
-
-      if (i < tokens->num_tokens - 2 && tokens->tokens[i + 2] != NULL &&
-          !is_operator(tokens->tokens[i + 2])) {
+      if (!is_valid_redirection(tokens, i)) {
         print_error();
         return false;
       }
@@ -137,41 +130,8 @@ bool process_redirection(TokenChain *tokens) {
 bool process_output_redirection(TokenChain *tokens, int index) {
   // printf("DEBUG: Inside process_output_redirection\n");
 
-  /* if (!tokens) { */
-  /*   // printf("DEBUG: tokens is null\n"); */
-  /*   return false; */
-  /* } */
-
   if (!tokens->tokens) {
     // printf("DEBUG: tokens->tokens is null\n");
-    return false;
-  }
-
-  if (index >= tokens->num_tokens - 1) {
-    // printf("DEBUG: '>' is the last token, no filename provided\n");
-    print_error();
-    return false;
-  }
-
-  if (!tokens->tokens[index + 1] || tokens->tokens[index + 1][0] == '\0') {
-    // printf("DEBUG: tokens->tokens[index + 1] is null or empty\n");
-    print_error();
-    return false;
-  }
-
-  if (index == tokens->num_tokens - 1) {
-    print_error();
-  }
-
-  tokens->shell_operation.data.redirection.file =
-      malloc(strlen(tokens->tokens[index + 1]) + 1);
-  if (tokens->shell_operation.data.redirection.file == NULL) {
-    // printf("DEBUG: Failed to allocate memory for redirection.file\n");
-    return false;
-  }
-
-  if (!tokens->shell_operation.data.redirection.file) {
-    // printf("DEBUG: tokens->shell_operation.data.redirection.file is null\n");
     return false;
   }
 
@@ -181,8 +141,8 @@ bool process_output_redirection(TokenChain *tokens, int index) {
   tokens->shell_operation.type = REDIRECTION;
   tokens->shell_operation.data.redirection.type = OUTPUT;
 
-  // printf("DEBUG: Setting up output redirection to: %s\n",
-  // tokens->shell_operation.data.redirection.file);
+  /* printf("DEBUG: Setting up output redirection to: %s\n", */
+  /*        tokens->shell_operation.data.redirection.file); */
   tokens->tokens[index] = NULL;
   tokens->tokens[index + 1] = NULL;
 
@@ -230,6 +190,7 @@ void free_parallel_commands(Parallel *parallel) {
   free(parallel->cmds);
 }
 
+// TODO: sort out this monstrosity
 bool is_parallel(TokenChain *tokens) {
   bool found_ampersand = false;
   bool found_redirection = false;
