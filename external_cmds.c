@@ -1,6 +1,8 @@
 #include "external_cmds.h"
 #include "errors.h"
 #include "path_mgmt.h"
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

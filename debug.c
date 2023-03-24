@@ -1,5 +1,17 @@
-#include "parser.h"
+#include "debug.h"
 #include <stdio.h>
+
+bool debug_enabled = false;
+
+void set_debug(bool flag) { debug_enabled = flag; }
+
+void toggle_debug() { debug_enabled = !debug_enabled; }
+
+void debug_print(const char *message) {
+  if (debug_enabled) {
+    printf("[DEBUG]: %s\n", message);
+  }
+}
 
 void print_token_list(const char *msg, TokenChain *tokens) {
   printf("%s:\n", msg);
