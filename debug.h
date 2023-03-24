@@ -2,7 +2,6 @@
 #define DEBUG_H
 
 #include "shell_operations.h"
-#include <stdbool.h>
 
 extern bool debug_enabled;
 

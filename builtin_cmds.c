@@ -10,11 +10,11 @@
 
 const int SUCCESS = 0;
 
+bool is_cd_cmd(const char *cmd) { return strcmp(cmd, "cd") == 0; }
+
 bool is_debug_cmd(const char *cmd) { return strcmp(cmd, "debug") == 0; }
 
 bool is_exit_cmd(const char *cmd) { return strcmp(cmd, "exit") == 0; }
-
-bool is_cd_cmd(const char *cmd) { return strcmp(cmd, "cd") == 0; }
 
 bool is_path_cmd(const char *cmd) { return strcmp(cmd, "path") == 0; }
 
@@ -73,7 +73,7 @@ void execute_debug(TokenChain *tokens) {
   } else if (strcmp(action, "toggle") == 0) {
     toggle_debug();
   } else {
-    print_error();
+    debug_error();
   }
 }
 
