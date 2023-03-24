@@ -3,15 +3,34 @@
 
 bool debug_enabled = false;
 
-void set_debug(bool flag) { debug_enabled = flag; }
-
-void toggle_debug() { debug_enabled = !debug_enabled; }
-
-void debug_print(const char *message) {
-  if (debug_enabled) {
-    printf("[DEBUG]: %s\n", message);
+void enable_debug() {
+  if (!debug_enabled) {
+    debug_enabled = true;
+    printf("Debugging has been enabled\n");
+  } else {
+    printf("Debugging is already enabled\n");
   }
 }
+
+void disable_debug() {
+  if (debug_enabled) {
+    debug_enabled = false;
+    printf("Debugging has been disabled\n");
+  } else {
+    printf("Debugging is already disabled\n");
+  }
+}
+
+void toggle_debug() {
+  debug_enabled = !debug_enabled;
+  printf("Debugging has been %s\n", debug_enabled ? "enabled" : "disabled");
+}
+
+void print_debug_status() {
+  printf("Debugging is currently %s\n", debug_enabled ? "enabled" : "disabled");
+}
+
+void debug_error() { printf("Invalid command\n"); }
 
 void print_token_list(const char *msg, TokenChain *tokens) {
   printf("%s:\n", msg);

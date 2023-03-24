@@ -6,10 +6,16 @@
 
 extern bool debug_enabled;
 
-void print_token_list(const char *msg, TokenChain *tokens);
+void enable_debug();
 
-void set_debug(bool flag);
+void disable_debug();
+
 void toggle_debug();
-void debug_print(const char *message);
+
+void print_debug_status();
+
+void debug_error();
+
+void print_token_list(const char *msg, TokenChain *tokens);
 
 #endif /* DEBUG_H */

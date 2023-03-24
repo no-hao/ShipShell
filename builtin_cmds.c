@@ -1,4 +1,5 @@
 #include "builtin_cmds.h"
+#include "debug.h"
 #include "errors.h"
 #include "path_mgmt.h"
 #include <errno.h>
@@ -54,22 +55,23 @@ void execute_path(TokenChain *tokens) {
 }
 
 void execute_debug(TokenChain *tokens) {
+  if (tokens->num_tokens < 1 || tokens->num_tokens > 3) {
+    print_error();
+    return;
+  }
+
   if (tokens->num_tokens == 1) {
-    printf("Debug is currently %s\n", debug_enabled ? "enabled" : "disabled");
-  } else if (tokens->num_tokens == 2) {
-    if (strcmp(tokens->tokens[1], "on") == 0) {
-      set_debug(true);
-      printf("Debug has been enabled\n");
-    } else if (strcmp(tokens->tokens[1], "off") == 0) {
-      set_debug(false);
-      printf("Debug has been disabled\n");
-    } else {
-      print_error();
-    }
-  } else if (tokens->num_tokens == 3 &&
-             strcmp(tokens->tokens[1], "toggle") == 0) {
+    print_debug_status();
+    return;
+  }
+
+  const char *action = tokens->tokens[1];
+  if (strcmp(action, "on") == 0) {
+    enable_debug();
+  } else if (strcmp(action, "off") == 0) {
+    disable_debug();
+  } else if (strcmp(action, "toggle") == 0) {
     toggle_debug();
-    printf("Debug has been %s\n", debug_enabled ? "enabled" : "disabled");
   } else {
     print_error();
   }
