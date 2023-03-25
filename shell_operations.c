@@ -1,5 +1,5 @@
 #include "shell_operations.h"
-#include "errors.h"
+#include "debug_and_errors.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,18 +9,11 @@
 /********** REDIRECTION **********/
 /**********************************/
 
-void redirect_input(const char *filename) {
-  // printf("DEBUG: Inside redirect_input\n");
-  FILE *in_file = fopen(filename, "r");
-  if (in_file == NULL) {
-    print_error();
-    exit(EXIT_FAILURE);
+void redirect(Redirection *redirection) {
+  // printf("DEBUG: Inside redirect\n");
+  if (redirection->type == OUTPUT) {
+    redirect_output(redirection->file);
   }
-  if (dup2(fileno(in_file), STDIN_FILENO) == -1) {
-    perror("dup2");
-    exit(EXIT_FAILURE);
-  }
-  fclose(in_file);
 }
 
 void redirect_output(const char *filename) {
@@ -37,45 +30,8 @@ void redirect_output(const char *filename) {
   fclose(out_file);
 }
 
-void redirect_append(const char *filename) {
-  // printf("DEBUG: Inside redirect_append\n");
-  FILE *out_file = fopen(filename, "a");
-  if (out_file == NULL) {
-    print_error();
-    exit(EXIT_FAILURE);
-  }
-  if (dup2(fileno(out_file), STDOUT_FILENO) == -1) {
-    perror("dup2");
-    exit(EXIT_FAILURE);
-  }
-  fclose(out_file);
-}
-
-void redirect(Redirection *redirection) {
-  // printf("DEBUG: Inside redirect\n");
-  if (redirection->type == INPUT) {
-    redirect_input(redirection->file);
-  } else if (redirection->type == OUTPUT) {
-    redirect_output(redirection->file);
-  } else if (redirection->type == APPEND) {
-    redirect_append(redirection->file);
-  }
-}
-
-static bool process_input_redirection(TokenChain *tokens, int i) {
-
-  tokens->shell_operation.type = REDIRECTION;
-  tokens->shell_operation.data.redirection.type = INPUT;
-  tokens->shell_operation.data.redirection.file = tokens->tokens[i + 1];
-  tokens->tokens[i] = NULL;
-  tokens->tokens[i + 1] = NULL;
-
-  return true;
-}
-
 bool is_operator(const char *token) {
-  return strcmp(token, "&") == 0 || strcmp(token, ">") == 0 ||
-         strcmp(token, ">>") == 0 || strcmp(token, "<") == 0;
+  return strcmp(token, "&") == 0 || strcmp(token, ">") == 0;
 }
 
 bool is_valid_redirection(TokenChain *tokens, int i) {
@@ -199,9 +155,7 @@ bool is_parallel(TokenChain *tokens) {
     if (strcmp(tokens->tokens[i], "&") == 0) {
       tokens->tokens[i] = NULL;
       found_ampersand = true;
-    } else if (strcmp(tokens->tokens[i], ">") == 0 ||
-               strcmp(tokens->tokens[i], ">>") == 0 ||
-               strcmp(tokens->tokens[i], "<") == 0) {
+    } else if (strcmp(tokens->tokens[i], ">") == 0) {
       found_redirection = true;
     }
   }

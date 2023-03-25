@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "debug.h"
+#include "debug_and_errors.h"
 #include <stdbool.h>
 
 static void strip_trailing_whitespace(char *s);

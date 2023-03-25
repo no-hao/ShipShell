@@ -1,7 +1,7 @@
 #ifndef BUILTIN_CMD_H
 #define BUILTIN_CMD_H
 
-#include "debug.h"
+#include "debug_and_errors.h"
 #include <stdbool.h>
 
 bool is_exit_cmd(const char *cmd);

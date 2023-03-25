@@ -1,6 +1,5 @@
 #include "path_mgmt.h"
-#include "debug.h"
-#include <stdio.h>
+#include "debug_and_errors.h"
 #include <stdlib.h>
 #include <string.h>
 

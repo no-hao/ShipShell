@@ -1,5 +1,5 @@
 #include "parser.h"
-#include "debug.h"
+#include "debug_and_errors.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,7 +101,7 @@ TokenChain tokenize_input(const char *input, const char *delimiter) {
 
   // Print out the tokens
   if (debug_enabled) {
-    print_token_list("tokens in TokenChain", &result);
+    print_tokens("tokens in TokenChain", &result);
   }
 
   free(input_copy);

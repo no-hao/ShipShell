@@ -1,5 +1,8 @@
-#include "debug.h"
+#include "shell_operations.h"
+#include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 bool debug_enabled = false;
 
@@ -32,9 +35,9 @@ void print_debug_status() {
 
 void debug_error() { printf("Invalid command\n"); }
 
-void print_token_list(const char *msg, TokenChain *tokens) {
+void print_tokens(const char *msg, TokenChain *tokens) {
   printf("%s:\n", msg);
-  printf("format-> [index][TYPE][value]\n");
+  printf("format-> [INDEX][TYPE][VALUE]\n");
   for (int i = 0; i < tokens->num_tokens; i++) {
     printf("[%d][%s][%s] ", i,
            tokens->tokens[i] == NULL ? "OP"
@@ -46,4 +49,9 @@ void print_token_list(const char *msg, TokenChain *tokens) {
            tokens->tokens[i] == NULL ? "<null>" : tokens->tokens[i]);
   }
   printf("\n");
+}
+
+void print_error() {
+  write(STDERR_FILENO, "An error has occurred\n",
+        strlen("An error has occurred\n"));
 }

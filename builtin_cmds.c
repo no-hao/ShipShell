@@ -1,6 +1,4 @@
 #include "builtin_cmds.h"
-#include "debug.h"
-#include "errors.h"
 #include "path_mgmt.h"
 #include <errno.h>
 #include <stdio.h>

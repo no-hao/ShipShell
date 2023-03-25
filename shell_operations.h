@@ -38,15 +38,9 @@ bool process_parallel(TokenChain *tokens);
 
 static bool process_output_redirection(TokenChain *tokens, int i);
 
-static bool process_input_redirection(TokenChain *tokens, int i);
-
 bool process_redirection(TokenChain *tokens);
 
-void redirect_input(const char *filename);
-
 void redirect_output(const char *filename);
-
-void redirect_append(const char *filename);
 
 void redirect(Redirection *redirection);
 
