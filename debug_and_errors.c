@@ -1,4 +1,4 @@
-#include "shell_operations.h"
+#include "shell_types.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>

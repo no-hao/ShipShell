@@ -1,7 +1,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include "shell_operations.h"
+#include "shell_types.h"
 
 extern bool debug_enabled;
 
