@@ -31,32 +31,14 @@ bool is_operator(const char *token) {
   return strcmp(token, "&") == 0 || strcmp(token, ">") == 0;
 }
 
-bool is_valid_redirection(TokenChain *tokens, int i) {
-  if (i < 1 || i >= tokens->num_tokens - 1) {
-    return false;
-  }
-
-  // Check if the previous token is an executable
-  if (access(tokens->tokens[i - 1], X_OK) != 0) {
-    return false;
-  }
-
-  // Check if the next token is a valid file or path
-  // You can add more conditions here, if necessary
-  if (tokens->tokens[i + 1] == NULL ||
-      strcmp(tokens->tokens[i + 1], "&") == -1) {
-    return false;
-  }
-
-  return true;
-}
-
 bool process_redirection(TokenChain *tokens) {
   if (!tokens) {
     return false;
   }
 
   int i = 0;
+  int output_redirection_count = 0;
+
   while (i < tokens->num_tokens) {
     if (tokens->tokens[i] == NULL) {
       i++;
@@ -64,7 +46,9 @@ bool process_redirection(TokenChain *tokens) {
     }
 
     if (strcmp(tokens->tokens[i], ">") == 0) {
-      if (!is_valid_redirection(tokens, i)) {
+      output_redirection_count++;
+
+      if (output_redirection_count > 1) {
         print_error();
         return false;
       }
@@ -72,6 +56,8 @@ bool process_redirection(TokenChain *tokens) {
       if (!process_output_redirection(tokens, i)) {
         return false;
       }
+    } else {
+      output_redirection_count = 0;
     }
 
     i++;
@@ -89,6 +75,17 @@ bool process_output_redirection(TokenChain *tokens, int index) {
     if (debug_enabled) {
       printf("DEBUG: tokens->tokens is null\n");
     }
+    return false;
+  }
+
+  if (index + 1 >= tokens->num_tokens || tokens->tokens[index + 1] == NULL) {
+    print_error();
+    return false;
+  }
+
+  if (index + 2 < tokens->num_tokens && tokens->tokens[index + 2] != NULL &&
+      !is_operator(tokens->tokens[index + 2])) {
+    print_error();
     return false;
   }
 
