@@ -6,6 +6,13 @@
 #include <string.h>
 #include <unistd.h>
 
+void free_parallel_commands(Parallel *parallel) {
+  for (int i = 0; i < parallel->num_cmds; i++) {
+    free(parallel->cmds[i].tokens);
+  }
+  free(parallel->cmds);
+}
+
 bool process_parallel(TokenChain *tokens) {
   Parallel *parallel = &tokens->shell_operation.data.parallel;
   int cmd_count = 0;
@@ -36,30 +43,6 @@ bool process_parallel(TokenChain *tokens) {
   return cmd_count > 1;
 }
 
-void free_parallel_commands(Parallel *parallel) {
-  for (int i = 0; i < parallel->num_cmds; i++) {
-    free(parallel->cmds[i].tokens);
-  }
-  free(parallel->cmds);
-}
-
-// TODO: sort out this monstrosity
-bool is_parallel(TokenChain *tokens) {
-  bool found_ampersand = false;
-  bool found_redirection = false;
-
-  for (int i = 0; i < tokens->num_tokens; i++) {
-    if (strcmp(tokens->tokens[i], "&") == 0) {
-      tokens->tokens[i] = NULL;
-      found_ampersand = true;
-    } else if (strcmp(tokens->tokens[i], ">") == 0) {
-      found_redirection = true;
-    }
-  }
-
-  return found_ampersand && found_redirection;
-}
-
 int extract_command(TokenChain *tokens, Parallel *parallel, int start_index,
                     int end_index, int cmd_count) {
   int cmd_length = end_index - start_index;
@@ -74,23 +57,4 @@ int extract_command(TokenChain *tokens, Parallel *parallel, int start_index,
     parallel->cmds[cmd_count - 1].num_tokens = cmd_length;
   }
   return cmd_count;
-}
-
-void separate_parallel_commands(TokenChain *tokens, Parallel *parallel) {
-  parallel->num_cmds = 0;
-  parallel->cmds = NULL;
-
-  int cmd_start = 0;
-  for (int i = 0; i < tokens->num_tokens; i++) {
-    if (tokens->tokens[i] == NULL) {
-      parallel->num_cmds =
-          extract_command(tokens, parallel, cmd_start, i, parallel->num_cmds);
-      cmd_start = i + 1;
-    }
-  }
-
-  if (cmd_start < tokens->num_tokens) {
-    parallel->num_cmds = extract_command(
-        tokens, parallel, cmd_start, tokens->num_tokens, parallel->num_cmds);
-  }
 }

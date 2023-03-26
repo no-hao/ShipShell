@@ -1,13 +1,22 @@
 #include "external_cmds.h"
-#include "errors.h"
 #include "parallel_processing.h"
 #include "path_mgmt.h"
 #include "redirection.h"
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+char *find_command_path(TokenChain *tokens) {
+  char full_path[255];
+  for (int i = 0; i < path->num_dirs; i++) {
+    sprintf(full_path, "%s/%s", path->dirs[i], tokens->tokens[0]);
+    if (access(full_path, X_OK) == 0) {
+      return strdup(full_path);
+    }
+  }
+  return NULL;
+}
 
 pid_t create_child_process(void (*child_func)(TokenChain *),
                            TokenChain *tokens) {
@@ -28,20 +37,18 @@ void exec_child_process(TokenChain *tokens) {
     exit(EXIT_FAILURE);
   }
 
-  char full_path[255];
-  for (int i = 0; i < path->num_dirs; i++) {
-    sprintf(full_path, "%s/%s", path->dirs[i], tokens->tokens[0]);
-    if (access(full_path, X_OK) == 0) {
-      if (tokens->shell_operation.type == REDIRECTION) {
-        redirect(&tokens->shell_operation.data.redirection);
-      }
-      if (execv(full_path, tokens->tokens) == -1) {
-        exit(EXIT_FAILURE);
-      }
-    }
+  char *full_path = find_command_path(tokens);
+  if (full_path == NULL) {
+    print_error();
+    exit(EXIT_FAILURE);
   }
-  print_error();
-  exit(EXIT_FAILURE);
+
+  if (tokens->shell_operation.type == REDIRECTION) {
+    redirect(&tokens->shell_operation.data.redirection);
+  }
+  if (execv(full_path, tokens->tokens) == -1) {
+    exit(EXIT_FAILURE);
+  }
 }
 
 void execute_command(TokenChain *tokens) {
@@ -49,8 +56,6 @@ void execute_command(TokenChain *tokens) {
     return;
   }
 
-  // First, process redirections.
-  // Then, process parallel commands.
   if (process_parallel(tokens)) {
     tokens->shell_operation.type = PARALLEL;
   }
