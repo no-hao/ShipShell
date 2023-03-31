@@ -3,6 +3,7 @@
 #include "parallel_processing.h"
 #include "path_mgmt.h"
 #include "redirection.h"
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,26 +34,40 @@ pid_t create_child_process(void (*child_func)(TokenChain *),
 }
 
 void exec_child_process(TokenChain *tokens) {
-  if (path->num_dirs == 0) {
-    print_error();
-    exit(EXIT_FAILURE);
-  }
+  char **args = malloc((tokens->num_tokens + 1) * sizeof(char *));
 
-  char *full_path = find_command_path(tokens);
-  if (full_path == NULL) {
-    print_error();
-    exit(EXIT_FAILURE);
+  int idx = 0;
+  while (tokens->tokens[idx] != NULL) {
+    args[idx] = tokens->tokens[idx];
+    idx++;
   }
+  args[idx] = NULL;
 
   if (tokens->shell_operation.type == REDIRECTION) {
-    if (debug_enabled) {
-      printf("DEBUG: exec_child_process - REDIRECTION detected\n");
+    Redirection *redirection = &tokens->shell_operation.data.redirection;
+    if (redirection->type == OUTPUT) {
+      int fd = open(redirection->file, O_CREAT | O_WRONLY | O_TRUNC,
+                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      if (fd == -1) {
+        perror("Failed to open redirection file");
+        exit(EXIT_FAILURE);
+      }
+
+      if (dup2(fd, STDOUT_FILENO) == -1) {
+        perror("dup2 failed");
+        exit(EXIT_FAILURE);
+      }
+
+      close(fd);
     }
-    redirect(&tokens->shell_operation.data.redirection);
   }
-  if (execv(full_path, tokens->tokens) == -1) {
+
+  // Execute the command
+  if (execvp(args[0], args) == -1) {
+    perror("Execution failed");
     exit(EXIT_FAILURE);
   }
+  free(args);
 }
 
 void execute_command(TokenChain *tokens) {
@@ -97,15 +112,34 @@ void execute_parallel_commands(TokenChain *tokens) {
     }
   }
 
-  free(parallel->cmds);
+  for (int i = 0; i < parallel->num_cmds; i++) {
+    free(parallel->cmds[i].tokens);
+  }
   free(pids);
 }
 
 void execute_single_command(TokenChain *tokens) {
+  char *command_path = find_command_path(tokens);
+  if (command_path == NULL) {
+    print_error();
+    return;
+  }
+
+  tokens->tokens[0] = command_path;
+
   pid_t pid = create_child_process(&exec_child_process, tokens);
 
   int status;
   if (waitpid(pid, &status, 0) == -1) {
     perror("waitpid");
+  }
+
+  free(command_path);
+}
+
+void free_token_chain_memory(TokenChain *tokens) {
+  if (tokens->shell_operation.type == REDIRECTION) {
+    Redirection *redirection = &tokens->shell_operation.data.redirection;
+    free(redirection->file);
   }
 }

@@ -6,30 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 
-void redirect(Redirection *redirection) {
-  // printf("DEBUG: Inside redirect\n");
-  if (redirection->type == OUTPUT) {
-    redirect_output(redirection->file);
-  }
-}
-
-void redirect_output(const char *filename) {
-  if (debug_enabled) {
-    printf("DEBUG: Inside redirect_output, filename: %s\n", filename);
-  }
-  FILE *out_file = fopen(filename, "w");
-  if (out_file == NULL) {
-    print_error();
-    exit(EXIT_FAILURE);
-  }
-  int fd = fileno(out_file);
-  if (dup2(fd, STDOUT_FILENO) == -1) {
-    perror("dup2");
-    exit(EXIT_FAILURE);
-  }
-  close(fd); // Close the file descriptor manually
-}
-
 bool is_operator(const char *token) {
   return strcmp(token, "&") == 0 || strcmp(token, ">") == 0;
 }

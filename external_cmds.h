@@ -16,6 +16,8 @@ void execute_single_command(TokenChain *tokens);
 
 void execute_parallel_commands(TokenChain *tokens);
 
+void free_token_chain_memory(TokenChain *tokens);
+
 pid_t create_child_process(void (*child_func)(TokenChain *),
                            TokenChain *tokens);
 
