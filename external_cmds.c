@@ -1,4 +1,5 @@
 #include "external_cmds.h"
+#include "debug_and_errors.h"
 #include "parallel_processing.h"
 #include "path_mgmt.h"
 #include "redirection.h"
@@ -44,6 +45,9 @@ void exec_child_process(TokenChain *tokens) {
   }
 
   if (tokens->shell_operation.type == REDIRECTION) {
+    if (debug_enabled) {
+      printf("DEBUG: exec_child_process - REDIRECTION detected\n");
+    }
     redirect(&tokens->shell_operation.data.redirection);
   }
   if (execv(full_path, tokens->tokens) == -1) {
@@ -56,11 +60,18 @@ void execute_command(TokenChain *tokens) {
     return;
   }
 
+  // First, process redirections
+  if (!process_redirection(tokens)) {
+    return;
+  }
+
+  // Then, check if there are parallel commands
   if (process_parallel(tokens)) {
     tokens->shell_operation.type = PARALLEL;
   }
-  if (!process_redirection(tokens)) {
-    return;
+
+  if (debug_enabled) {
+    printf("DEBUG: Shell operation type: %d\n", tokens->shell_operation.type);
   }
 
   if (tokens->shell_operation.type == PARALLEL) {

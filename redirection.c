@@ -14,17 +14,20 @@ void redirect(Redirection *redirection) {
 }
 
 void redirect_output(const char *filename) {
-  // printf("DEBUG: Inside redirect_output\n");
+  if (debug_enabled) {
+    printf("DEBUG: Inside redirect_output, filename: %s\n", filename);
+  }
   FILE *out_file = fopen(filename, "w");
   if (out_file == NULL) {
     print_error();
     exit(EXIT_FAILURE);
   }
-  if (dup2(fileno(out_file), STDOUT_FILENO) == -1) {
+  int fd = fileno(out_file);
+  if (dup2(fd, STDOUT_FILENO) == -1) {
     perror("dup2");
     exit(EXIT_FAILURE);
   }
-  fclose(out_file);
+  close(fd); // Close the file descriptor manually
 }
 
 bool is_operator(const char *token) {
@@ -83,14 +86,26 @@ bool process_output_redirection(TokenChain *tokens, int index) {
     return false;
   }
 
+  if (debug_enabled) {
+    printf("DEBUG: Redirection file name: %s\n", tokens->tokens[index + 1]);
+  }
+
+  // Check if the next token is also a redirection token
+  if (index + 2 < tokens->num_tokens &&
+      strcmp(tokens->tokens[index + 2], ">") == 0) {
+    print_error();
+    return false;
+  }
+
+  // Check if there's a non-operator token following the output file
   if (index + 2 < tokens->num_tokens && tokens->tokens[index + 2] != NULL &&
       !is_operator(tokens->tokens[index + 2])) {
     print_error();
     return false;
   }
 
-  strcpy(tokens->shell_operation.data.redirection.file,
-         tokens->tokens[index + 1]);
+  tokens->shell_operation.data.redirection.file =
+      strdup(tokens->tokens[index + 1]);
 
   tokens->shell_operation.type = REDIRECTION;
   tokens->shell_operation.data.redirection.type = OUTPUT;
