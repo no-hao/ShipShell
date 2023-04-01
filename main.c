@@ -39,7 +39,7 @@ void parse_input(char *input, char **command, char ***args,
         *redirection_file = token;
         // Check for extra tokens after the redirection file
         token = strtok(NULL, " \t\n");
-        if (token != NULL || strcmp(token, "&")) {
+        if (token != NULL || !strcmp(token, "&")) {
           print_error();
           break;
         }
@@ -58,7 +58,7 @@ void parse_input(char *input, char **command, char ***args,
   }
 
   // Null-terminate the args array
-  (*args)[arg_count] = NULL;
+  (*args)[arg_count++] = NULL;
 }
 
 int search_executable(char *command, char *path) {
@@ -74,8 +74,26 @@ int search_executable(char *command, char *path) {
 int handle_builtin_command(char *command, char **args) {
   if (strcmp(command, "path") == 0) {
     int i;
+
+    // If no arguments are passed with the path command, set local_search_path
+    // to empty
+    if (args[1] == NULL) {
+      local_search_path[0] = NULL;
+      return 1;
+    }
+
     for (i = 0; args[i + 1] != NULL; i++) {
-      local_search_path[i] = args[i + 1];
+      // Check if the path is relative or absolute
+      if (args[i + 1][0] != '/') {
+        // If the path is relative, convert it to an absolute path
+        char abs_path[1024];
+        getcwd(abs_path, sizeof(abs_path));
+        strcat(abs_path, "/");
+        strcat(abs_path, args[i + 1]);
+        local_search_path[i] = strdup(abs_path);
+      } else {
+        local_search_path[i] = strdup(args[i + 1]);
+      }
     }
     local_search_path[i] = NULL;
     return 1;
@@ -192,7 +210,6 @@ int main(int argc, char *argv[]) {
     if (!handle_builtin_command(command, args)) {
       if (execute_command(command, args, redirection_file) != 0) {
         print_error();
-        return 0;
       }
     }
 
