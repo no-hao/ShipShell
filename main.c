@@ -15,7 +15,6 @@ void print_error() {
         strlen("An error has occurred\n"));
 }
 
-// Utility functions
 void parse_input(char *input, char **command, char ***args,
                  char **redirection_file, int *is_parallel) {
   *is_parallel = 0;
@@ -39,6 +38,12 @@ void parse_input(char *input, char **command, char ***args,
       token = strtok(NULL, " \t\n");
       if (token != NULL) {
         *redirection_file = token;
+        // Check for extra tokens after the redirection file
+        token = strtok(NULL, " \t\n");
+        if (token != NULL || strcmp(token, "&")) {
+          print_error();
+          break;
+        }
       } else {
         *redirection_file = "";
       }
