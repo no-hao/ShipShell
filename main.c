@@ -124,9 +124,13 @@ int handle_builtin_command(char *command, char **args) {
     }
     return 1;
   }
-
   if (strcmp(command, "exit") == 0) {
-    exit(0);
+    if (args[1] != NULL) {
+      print_error(); // Print error if there are additional arguments for exit
+      return 1;      // Return 1 to indicate the command was handled
+    } else {
+      exit(0);
+    }
   }
 
   return 0;
