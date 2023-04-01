@@ -211,6 +211,12 @@ int main(int argc, char *argv[]) {
 
     parse_input(start, &command, &args, &redirection_file, &is_parallel);
 
+    // Check if the command is a standalone "&" operator
+    if (strcmp(command, "&") == 0 && args[1] == NULL) {
+      free(args);
+      continue;
+    }
+
     if (!handle_builtin_command(command, args)) {
       if (execute_command(command, args, redirection_file) != 0) {
         print_error();
@@ -219,7 +225,6 @@ int main(int argc, char *argv[]) {
 
     free(args);
   }
-
   // Check for file errors and close file
   if (ferror(file)) {
     print_error();
