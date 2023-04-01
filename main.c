@@ -62,45 +62,6 @@ int search_executable(char *command, char *path) {
   return -1;
 }
 
-int execute_command(char *command, char **args, char *redirection_file) {
-  char path[1024];
-
-  if (search_executable(command, path) != 0) {
-    return -1;
-  }
-
-  pid_t pid = fork();
-  if (pid == 0) {
-    // Child process
-    if (redirection_file) {
-      int fd = open(redirection_file, O_CREAT | O_WRONLY | O_TRUNC,
-                    S_IRUSR | S_IWUSR);
-      if (fd == -1) {
-        print_error();
-        exit(1);
-      }
-      dup2(fd, STDOUT_FILENO);
-      close(fd);
-    }
-    execv(path, args);
-    // If execv returns, it means there was an error
-    // Remove print_error(); to let the executable handle the error message
-    exit(1);
-  } else if (pid > 0) {
-    // Parent process
-    int status;
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-      // print_error();
-    }
-  } else {
-    // Fork failed
-    print_error();
-  }
-
-  return 0;
-}
-
 int handle_builtin_command(char *command, char **args) {
   if (strcmp(command, "path") == 0) {
     if (args[1] == NULL) {
@@ -131,6 +92,46 @@ int handle_builtin_command(char *command, char **args) {
     } else {
       exit(0);
     }
+  }
+
+  return 0;
+}
+
+int execute_command(char *command, char **args, char *redirection_file) {
+  char path[1024];
+
+  if (search_executable(command, path) != 0) {
+    handle_builtin_command(command, args);
+    return -1;
+  }
+
+  pid_t pid = fork();
+  if (pid == 0) {
+    // Child process
+    if (redirection_file) {
+      int fd = open(redirection_file, O_CREAT | O_WRONLY | O_TRUNC,
+                    S_IRUSR | S_IWUSR);
+      if (fd == -1) {
+        print_error();
+        exit(1);
+      }
+      dup2(fd, STDOUT_FILENO);
+      close(fd);
+    }
+    execv(path, args);
+    // If execv returns, it means there was an error
+    // Remove print_error(); to let the executable handle the error message
+    exit(1);
+  } else if (pid > 0) {
+    // Parent process
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+      // print_error();
+    }
+  } else {
+    // Fork failed
+    print_error();
   }
 
   return 0;
