@@ -6,7 +6,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-char *local_search_path = "/bin";
+// Change the line where local_search_path is declared to:
+char local_search_path[1024] = "/bin";
 
 // Utility functions
 void print_error() {
@@ -69,7 +70,7 @@ int handle_builtin_command(char *command, char **args) {
       local_search_path[0] = '\0';
     } else {
       // Set the local search path to the first provided argument
-      strncpy(local_search_path, args[1], 1024);
+      strlcpy(local_search_path, args[1], 1024);
       local_search_path[1023] = '\0';
     }
     return 1;
@@ -101,7 +102,7 @@ int execute_command(char *command, char **args, char *redirection_file) {
   char path[1024];
 
   if (search_executable(command, path) != 0) {
-    handle_builtin_command(command, args);
+    // Executable not found
     return -1;
   }
 
