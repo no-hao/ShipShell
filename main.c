@@ -28,6 +28,10 @@ void parse_input(char *input, char **command, char ***args,
 
   // Get the arguments
   int arg_count = 0;
+
+  // Add the command to the args array
+  (*args)[arg_count++] = *command;
+
   while ((token = strtok(NULL, " \t\n")) != NULL) {
     if (strcmp(token, ">") == 0) {
       // Handle redirection
@@ -50,17 +54,51 @@ void parse_input(char *input, char **command, char ***args,
   (*args)[arg_count] = NULL;
 }
 
-int execute_command(/* arguments */) {
-  // Implement command execution
-  return 0;
-}
-
 int search_executable(char *command, char *path) {
   snprintf(path, 1024, "%s/%s", local_search_path, command);
   if (access(path, X_OK) == 0) {
     return 0;
   }
   return -1;
+}
+
+int execute_command(char *command, char **args, char *redirection_file) {
+  char path[1024];
+
+  if (search_executable(command, path) != 0) {
+    return -1;
+  }
+
+  pid_t pid = fork();
+  if (pid == 0) {
+    // Child process
+    if (redirection_file) {
+      int fd = open(redirection_file, O_CREAT | O_WRONLY | O_TRUNC,
+                    S_IRUSR | S_IWUSR);
+      if (fd == -1) {
+        print_error();
+        exit(1);
+      }
+      dup2(fd, STDOUT_FILENO);
+      close(fd);
+    }
+    execv(path, args);
+    // If execv returns, it means there was an error
+    // Remove print_error(); to let the executable handle the error message
+    exit(1);
+  } else if (pid > 0) {
+    // Parent process
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+      // print_error();
+    }
+  } else {
+    // Fork failed
+    print_error();
+  }
+
+  return 0;
 }
 
 int handle_builtin_command(char *command, char **args) {
@@ -75,10 +113,12 @@ int handle_builtin_command(char *command, char **args) {
     }
     return 1;
   } else if (strcmp(command, "cd") == 0) {
-    if (args[0] == NULL || args[1] != 0) {
+    if (args[1] == NULL) {
+      print_error(); // Print error if no arguments are provided for cd
+    } else if (args[2] != NULL) {
       print_error(); // Print error if there are more than 1 arguments for cd
     } else {
-      if (chdir(args[0]) != 0) {
+      if (chdir(args[1]) != 0) {
         perror("wish");
       }
     }
@@ -133,37 +173,7 @@ int main(int argc, char *argv[]) {
     parse_input(start, &command, &args, &redirection_file, &is_parallel);
 
     if (!handle_builtin_command(command, args)) {
-      char path[1024];
-      if (search_executable(command, path) == 0) {
-        pid_t pid = fork();
-        if (pid == 0) {
-          // Child process
-          if (redirection_file) {
-            int fd = open(redirection_file, O_CREAT | O_WRONLY | O_TRUNC,
-                          S_IRUSR | S_IWUSR);
-            if (fd == -1) {
-              print_error();
-              exit(1);
-            }
-            dup2(fd, STDOUT_FILENO);
-            close(fd);
-          }
-          execv(path, args);
-          // If execv returns, it means there was an error
-          // print_error();
-          exit(1);
-        } else if (pid > 0) {
-          // Parent process
-          int status;
-          waitpid(pid, &status, 0);
-          if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-            print_error();
-          }
-        } else {
-          // Fork failed
-          print_error();
-        }
-      } else {
+      if (execute_command(command, args, redirection_file) != 0) {
         print_error();
       }
     }
