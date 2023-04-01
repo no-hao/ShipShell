@@ -6,10 +6,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-// Change the line where local_search_path is declared to:
-char local_search_path[1024] = "/bin";
+// Initialize the local_search_path array with the default directory
+char *local_search_path[] = {"/bin", NULL};
 
-// Utility functions
 void print_error() {
   write(STDERR_FILENO, "An error has occurred\n",
         strlen("An error has occurred\n"));
@@ -63,23 +62,22 @@ void parse_input(char *input, char **command, char ***args,
 }
 
 int search_executable(char *command, char *path) {
-  snprintf(path, 1024, "%s/%s", local_search_path, command);
-  if (access(path, X_OK) == 0) {
-    return 0;
+  for (int i = 0; local_search_path[i] != NULL; i++) {
+    snprintf(path, 1024, "%s/%s", local_search_path[i], command);
+    if (access(path, X_OK) == 0) {
+      return 0;
+    }
   }
   return -1;
 }
 
 int handle_builtin_command(char *command, char **args) {
   if (strcmp(command, "path") == 0) {
-    if (args[1] == NULL) {
-      // If no argument is provided, clear the search path
-      local_search_path[0] = '\0';
-    } else {
-      // Set the local search path to the first provided argument
-      strlcpy(local_search_path, args[1], 1024);
-      local_search_path[1023] = '\0';
+    int i;
+    for (i = 0; args[i + 1] != NULL; i++) {
+      local_search_path[i] = args[i + 1];
     }
+    local_search_path[i] = NULL;
     return 1;
   } else if (strcmp(command, "cd") == 0) {
     if (args[1] == NULL) {
