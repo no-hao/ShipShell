@@ -1,4 +1,2 @@
-path tests/p2a-test tests
-p1.sh
-ls
-test3
+cd
+exit
