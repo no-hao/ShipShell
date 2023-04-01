@@ -39,6 +39,8 @@ void parse_input(char *input, char **command, char ***args,
       token = strtok(NULL, " \t\n");
       if (token != NULL) {
         *redirection_file = token;
+      } else {
+        *redirection_file = "";
       }
       break;
     } else if (strcmp(token, "&") == 0) {
@@ -138,8 +140,14 @@ int execute_command(char *command, char **args, char *redirection_file) {
   return 0;
 }
 
-void handle_redirection(/* arguments */) {
-  // Implement redirection
+void handle_redirection(char **args, char *redirection_file) {
+  // Check if there is no valid file provided
+  if (redirection_file == NULL) {
+    print_error();
+    return;
+  }
+
+  // Implement other redirection cases here
 }
 
 void handle_parallel_commands(/* arguments */) {
