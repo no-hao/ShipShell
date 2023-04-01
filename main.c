@@ -192,6 +192,7 @@ int main(int argc, char *argv[]) {
     if (!handle_builtin_command(command, args)) {
       if (execute_command(command, args, redirection_file) != 0) {
         print_error();
+        return 0;
       }
     }
 
