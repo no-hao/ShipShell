@@ -32,14 +32,18 @@ void parse_input(char *input, char **command, char ***args,
   (*args)[arg_count++] = *command;
 
   while ((token = strtok(NULL, " \t\n")) != NULL) {
-    if (strcmp(token, ">") == 0) {
+    if (strchr(token, '>') != NULL) {
       // Handle redirection
-      token = strtok(NULL, " \t\n");
-      if (token != NULL) {
-        *redirection_file = token;
+      char *redir_token = strtok(token, ">");
+      if (redir_token != NULL && redir_token[0] != '\0') {
+        (*args)[arg_count++] = redir_token;
+      }
+      redir_token = strtok(NULL, ">");
+      if (redir_token != NULL) {
+        *redirection_file = redir_token;
         // Check for extra tokens after the redirection file
         token = strtok(NULL, " \t\n");
-        if (token != NULL || !strcmp(token, "&")) {
+        if (token != NULL && !strcmp(token, "&")) {
           print_error();
           break;
         }
