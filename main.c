@@ -14,55 +14,55 @@ void print_error() {
         strlen("An error has occurred\n"));
 }
 
-void parse_input(char *input, char **command, char ***args,
-                 char **redirection_file, int *is_parallel) {
-  *is_parallel = 0;
-  *redirection_file = NULL;
+void parse_input(char *input, char ****commands, int *command_count,
+                 char ***redirection_files) {
+  *commands = calloc(64, sizeof(char **));
+  *redirection_files = calloc(64, sizeof(char *));
+  *command_count = 0;
 
-  // Tokenize the input string
-  char *token = strtok(input, " \t\n");
+  char *command_string = strtok(input, "&");
 
-  // Get the command
-  *command = token;
+  while (command_string != NULL) {
+    char **args = calloc(64, sizeof(char *));
+    int arg_count = 0;
+    char *token = strtok(command_string, " \t\n");
 
-  // Get the arguments
-  int arg_count = 0;
-
-  // Add the command to the args array
-  (*args)[arg_count++] = *command;
-
-  while ((token = strtok(NULL, " \t\n")) != NULL) {
-    if (strchr(token, '>') != NULL) {
-      // Handle redirection
-      char *redir_token = strtok(token, ">");
-      if (redir_token != NULL && redir_token[0] != '\0') {
-        (*args)[arg_count++] = redir_token;
-      }
-      redir_token = strtok(NULL, ">");
-      if (redir_token != NULL) {
-        *redirection_file = redir_token;
-        // Check for extra tokens after the redirection file
-        token = strtok(NULL, " \t\n");
-        if (token != NULL && !strcmp(token, "&")) {
-          print_error();
-          break;
+    while (token != NULL) {
+      if (strchr(token, '>') != NULL) {
+        // Handle redirection
+        if (*(token + 1) == '\0') { // Check if the next character is NULL
+          token = strtok(NULL, " \t\n");
+          if (token == NULL) { // If the next token is NULL, it's an error
+            print_error();
+            free(args);
+            return;
+          } else {
+            (*redirection_files)[*command_count] = token;
+            // Check if there's another token after the output file
+            char *next_token = strtok(NULL, " \t\n");
+            if (next_token != NULL && strcmp(next_token, "&") != 0) {
+              // If the next token is not NULL or '&', print an error
+              print_error();
+              free(args);
+              return;
+            }
+            token = next_token; // Update token to next_token
+          }
+        } else {
+          // Additional logic for handling other redirection cases
         }
       } else {
-        *redirection_file = "";
+        args[arg_count++] = token;
       }
-      break;
-    } else if (strcmp(token, "&") == 0) {
-      // Handle parallel commands
-      *is_parallel = 1;
-      break;
-    } else {
-      // Add the argument to the args array
-      (*args)[arg_count++] = token;
+      token = strtok(NULL, " \t\n");
     }
-  }
 
-  // Null-terminate the args array
-  (*args)[arg_count++] = NULL;
+    args[arg_count] = NULL;
+    (*commands)[*command_count] = args;
+    (*command_count)++;
+
+    command_string = strtok(NULL, "&");
+  }
 }
 
 int search_executable(char *command, char *path) {
@@ -125,7 +125,8 @@ int handle_builtin_command(char *command, char **args) {
   return 0;
 }
 
-int execute_command(char *command, char **args, char *redirection_file) {
+int execute_command(char *command, char **args, char *redirection_file,
+                    int is_parallel) {
   char path[1024];
 
   if (search_executable(command, path) != 0) {
@@ -152,10 +153,12 @@ int execute_command(char *command, char **args, char *redirection_file) {
     exit(1);
   } else if (pid > 0) {
     // Parent process
-    int status;
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-      // print_error();
+    if (!is_parallel) {
+      int status;
+      waitpid(pid, &status, 0);
+      if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+        // print_error();
+      }
     }
   } else {
     // Fork failed
@@ -165,18 +168,20 @@ int execute_command(char *command, char **args, char *redirection_file) {
   return 0;
 }
 
-void handle_redirection(char **args, char *redirection_file) {
-  // Check if there is no valid file provided
-  if (redirection_file == NULL) {
-    print_error();
-    return;
+void execute_commands(char ***commands, int command_count,
+                      char **redirection_files) {
+  for (int i = 0; i < command_count; i++) {
+    char *command = commands[i][0];
+    if (handle_builtin_command(command, commands[i])) {
+      continue;
+    }
+
+    int is_parallel = (i + 1 < command_count);
+    if (execute_command(command, commands[i], redirection_files[i],
+                        is_parallel) != 0) {
+      print_error();
+    }
   }
-
-  // Implement other redirection cases here
-}
-
-void handle_parallel_commands(/* arguments */) {
-  // Implement parallel commands
 }
 
 int main(int argc, char *argv[]) {
@@ -204,26 +209,18 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    char *command = NULL;
-    char **args = calloc(64, sizeof(char *));
-    char *redirection_file = NULL;
-    int is_parallel = 0;
+    char ***commands = NULL;
+    int command_count = 0;
+    char **redirection_files = NULL;
 
-    parse_input(start, &command, &args, &redirection_file, &is_parallel);
+    parse_input(start, &commands, &command_count, &redirection_files);
+    execute_commands(commands, command_count, redirection_files);
 
-    // Check if the command is a standalone "&" operator
-    if (strcmp(command, "&") == 0 && args[1] == NULL) {
-      free(args);
-      continue;
+    for (int i = 0; i < command_count; i++) {
+      free(commands[i]);
     }
-
-    if (!handle_builtin_command(command, args)) {
-      if (execute_command(command, args, redirection_file) != 0) {
-        print_error();
-      }
-    }
-
-    free(args);
+    free(commands);
+    free(redirection_files);
   }
   // Check for file errors and close file
   if (ferror(file)) {
