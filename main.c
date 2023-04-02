@@ -1,5 +1,4 @@
 #include "builtin_cmds.h"
-#include "errors.h"
 #include "external_cmds.h"
 #include "parser.h"
 #include "path_mgmt.h"

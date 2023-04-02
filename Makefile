@@ -1,4 +1,4 @@
-wish: main.o parser.o external_cmds.o debug_and_errors.o errors.o path_mgmt.o builtin_cmds.o redirection.o parallel_processing.o
+wish: main.o parser.o external_cmds.o debug_and_errors.o path_mgmt.o builtin_cmds.o redirection.o parallel_processing.o
 	gcc -g -o wish main.o parser.o external_cmds.o debug_and_errors.o path_mgmt.o builtin_cmds.o redirection.o parallel_processing.o
 
 main.o: main.c external_cmds.h parser.h debug_and_errors.h
